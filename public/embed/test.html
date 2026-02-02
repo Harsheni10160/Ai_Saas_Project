@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test Page</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: #f9f9f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border: 2px solid #000;
+            border-radius: 20px;
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        code {
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        pre {
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Widget Test Page</h1>
+        <p>This page simulates a customer's website where the chat widget is embedded.</p>
+
+        <h2>Embed Code Used:</h2>
+        <pre>
+&lt;script 
+  src="http://localhost:3000/embed/widget.js" 
+  data-workspace="cm6ms92v80000uxm46eixgkyu"
+  data-api-url="http://localhost:3000"
+&gt;&lt;/script&gt;</pre>
+
+        <p>Replace <code>data-workspace</code> with your actual workspace ID from the dashboard.</p>
+    </div>
+
+    <!-- WIDGET EMBED CODE -->
+    <!-- Note: I'm using a placeholder workspace ID. In a real scenario, this would be the user's workspace ID -->
+    <script src="http://localhost:3000/embed/widget.js" data-workspace="cm6ms92v80000uxm46eixgkyu"
+        data-api-url="http://localhost:3000"></script>
+</body>
+
+</html>

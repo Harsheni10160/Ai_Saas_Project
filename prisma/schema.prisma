@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+enum PlanType {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions         Session[]
+  workspaceMembers WorkspaceMember[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  plan      PlanType @default(FREE)
+  
+  // Customization
+  chatbotName    String?
+  primaryColor   String   @default("#000000")
+  logoUrl        String?
+  
+  // Usage limits
+  monthlyQueries Int      @default(0)
+  queryLimit     Int      @default(100) // FREE: 100, STARTER: 1000, PRO: 10000
+  
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       WorkspaceMember[]
+  documents     Document[]
+  chunks        DocumentChunk[]
+  conversations Conversation[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        Role      @default(MEMBER)
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, workspaceId])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  fileUrl     String
+  fileType    String
+  fileSize    Int
+  status      String   @default("processing") // processing, completed, failed
+  errorMessage String?
+  createdAt   DateTime @default(now())
+  
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  chunks    DocumentChunk[]
+}
+
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  documentId  String
+  workspaceId String
+  content     String   @db.Text
+  embedding   Float[]
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  
+  document  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  sessionId   String   // Unique per end-user chat session
+  createdAt   DateTime @default(now())
+  
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  
+  @@unique([workspaceId, sessionId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String   // user or assistant
+  content        String   @db.Text
+  sources        Json?    // Array of document IDs used
+  createdAt      DateTime @default(now())
+  
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}

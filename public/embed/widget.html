@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    #ai-support-widget-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #ai-support-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: transform 0.2s;
+    }
+
+    #ai-support-button:hover {
+      transform: scale(1.1);
+    }
+
+    #ai-support-chat {
+      display: none;
+      position: absolute;
+      bottom: 80px;
+      right: 0;
+      width: 380px;
+      height: 600px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      border: 2px solid #000;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    #ai-support-chat.open {
+      display: flex;
+    }
+
+    #chat-header {
+      padding: 20px;
+      background: #000;
+      color: #fff;
+      font-weight: 600;
+      border-bottom: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fff;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #000;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #f3f2ee;
+      color: #000;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    #chat-input-container {
+      padding: 16px;
+      border-top: 2px solid #000;
+      display: flex;
+      gap: 8px;
+      background: #fff;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #000;
+      border-radius: 24px;
+      outline: none;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    #chat-input:focus {
+      border-color: #6366f1;
+    }
+
+    #send-button {
+      padding: 8px 16px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    #send-button:hover {
+      opacity: 0.8;
+    }
+
+    #send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: #f3f2ee;
+      border-radius: 16px;
+      width: fit-content;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      background: #a1a1aa;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="ai-support-widget-container">
+    <button id="ai-support-button">💬</button>
+    <div id="ai-support-chat">
+      <div id="chat-header">
+          <span>AI Support</span>
+          <span style="font-size: 12px; opacity: 0.7;">Online</span>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input id="chat-input" type="text" placeholder="How can we help?" />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Configuration extracted from data attributes on the script tag
+      const script = document.currentScript;
+      const WORKSPACE_ID = script?.getAttribute('data-workspace') || 'WORKSPACE_ID_HERE';
+      const API_URL = window.location.origin; // Usually hosted on the same domain or configured
+
+      const button = document.getElementById('ai-support-button');
+      const chat = document.getElementById('ai-support-chat');
+      const messagesContainer = document.getElementById('chat-messages');
+      const input = document.getElementById('chat-input');
+      const sendButton = document.getElementById('send-button');
+
+      let sessionId = localStorage.getItem('ai_support_session_id') || Math.random().toString(36).substring(7);
+      localStorage.setItem('ai_support_session_id', sessionId);
+      
+      let conversationHistory = [];
+
+      button.addEventListener('click', () => {
+        chat.classList.toggle('open');
+      });
+
+      async function sendMessage() {
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Add user message to UI
+        addMessage('user', message);
+        input.value = '';
+        input.disabled = true;
+        sendButton.disabled = true;
+
+        // Add typing indicator
+        const typingId = showTyping();
+
+        try {
+          const response = await fetch(`${API_URL}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workspaceId: WORKSPACE_ID,
+              sessionId,
+              message,
+              conversationHistory,
+            }),
+          });
+
+          const data = await response.json();
+          
+          // Remove typing indicator
+          document.getElementById(typingId)?.remove();
+          
+          // Add assistant response to UI
+          addMessage('assistant', data.response);
+          
+          // Add to history
+          conversationHistory.push({ role: 'user', content: message });
+          conversationHistory.push({ role: 'assistant', content: data.response });
+          
+          // Keep history reasonable
+          if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-10);
+
+        } catch (error) {
+          console.error('Chat error:', error);
+          document.getElementById(typingId)?.remove();
+          addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+        } finally {
+            input.disabled = false;
+            sendButton.disabled = false;
+            input.focus();
+        }
+      }
+
+      function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        messageDiv.textContent = content;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showTyping() {
+          const id = 'typing-' + Date.now();
+          const typingDiv = document.createElement('div');
+          typingDiv.id = id;
+          typingDiv.className = 'message assistant typing-indicator';
+          typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+          messagesContainer.appendChild(typingDiv);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          return id;
+      }
+
+      sendButton.addEventListener('click', sendMessage);
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      // Initial greeting
+      setTimeout(() => {
+          if (messagesContainer.children.length === 0) {
+              addMessage('assistant', 'Hi! How can I help you today?');
+          }
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

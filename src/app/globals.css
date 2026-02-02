@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  /* HiHobbes Color Palette */
+  --color-background: #FDFCF6;
+  --color-foreground: #000000;
+
+  --color-card: #FFFFFF;
+  --color-card-foreground: #000000;
+
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #000000;
+
+  --color-primary: #000000;
+  --color-primary-foreground: #FDFCF6;
+
+  --color-secondary: #F3F2EE;
+  --color-secondary-foreground: #000000;
+
+  --color-muted: #F3F2EE;
+  --color-muted-foreground: #666666;
+
+  --color-accent: #D9F19E;
+  /* Playful Success Green */
+  --color-accent-foreground: #000000;
+
+  --color-destructive: #FF4D4D;
+  --color-destructive-foreground: #FFFFFF;
+
+  --color-border: #000000;
+  --color-input: #000000;
+  --color-ring: #000000;
+
+  /* Custom Pastel Accents */
+  --color-pastel-green: #D9F19E;
+  --color-pastel-blue: #BDDDFC;
+  --color-pastel-yellow: #FEEBA7;
+  --color-pastel-purple: #E4D7FB;
+
+  /* HiHobbes Rounded Corners */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "General Sans", "Satoshi", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif font-bold tracking-tight;
+  }
+
+  /* Specific HiHobbes Border Look */
+  .hi-border {
+    border: 2px solid black;
+  }
+
+  .hi-card {
+    border: 2px solid black;
+    border-radius: 1.5rem;
+    background-color: white;
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  .hi-pill-btn {
+    border: 2px solid black;
+    border-radius: 9999px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-weight: 500;
+    transition-property: transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  .hi-pill-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .hi-pill-btn:active {
+    transform: scale(0.95);
+  }
+}
+
+@layer components {
+
+  /* Custom Animations */
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
