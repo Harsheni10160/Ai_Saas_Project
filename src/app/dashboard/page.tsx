@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { toast } from "sonner";
 import QuickTipsModal from "@/components/quick-tips-modal";
+import { DashboardSkeleton } from "@/components/loading-skeleton";
 
 // --- Components ---
 
@@ -83,30 +84,44 @@ export default function DashboardPage() {
         try {
             setLoading(true);
 
-            // 1. Fetch Workspaces
-            const wsRes = await fetch("/api/workspaces");
+            // ✅ OPTIMIZED: Parallel API calls instead of sequential
+            const [wsRes, docRes, analyticsRes] = await Promise.all([
+                fetch("/api/workspaces"),
+                fetch("/api/workspaces").then(async (res) => {
+                    const wsData = await res.json();
+                    if (wsData && wsData.length > 0) {
+                        return fetch(`/api/documents?workspaceId=${wsData[0].id}`);
+                    }
+                    return null;
+                }),
+                fetch("/api/workspaces").then(async (res) => {
+                    const wsData = await res.json();
+                    if (wsData && wsData.length > 0) {
+                        return fetch(`/api/analytics?workspaceId=${wsData[0].id}`).catch(() => null);
+                    }
+                    return null;
+                }),
+            ]);
+
             const wsData = await wsRes.json();
 
             if (wsData && wsData.length > 0) {
                 const activeWs = wsData[0];
                 setWorkspace(activeWs);
 
-                // 2. Fetch Documents
-                const docRes = await fetch(`/api/documents?workspaceId=${activeWs.id}`);
-                const docs = await docRes.json();
-
-                // 3. Fetch Analytics (for message count)
+                // Parse parallel responses
+                const docs = docRes ? await docRes.json() : [];
                 let analyticsData = { totalMessages: 0 };
-                try {
-                    const analyticsRes = await fetch(`/api/analytics?workspaceId=${activeWs.id}`);
-                    if (analyticsRes.ok) {
+
+                if (analyticsRes) {
+                    try {
                         analyticsData = await analyticsRes.json();
+                    } catch (err) {
+                        console.log("Analytics not available yet");
                     }
-                } catch (err) {
-                    console.log("Analytics not available yet");
                 }
 
-                // 4. Check widget installation (from localStorage)
+                // Check widget installation (from localStorage)
                 const widgetInstalled = typeof window !== 'undefined' && localStorage.getItem(`widget_installed_${activeWs.id}`) === 'true';
 
                 // Calculate stats
@@ -152,11 +167,7 @@ export default function DashboardPage() {
     const progress = Math.round((checklist.filter(i => i.completed).length / checklist.length) * 100);
 
     if (loading) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-pastel-green" />
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     return (

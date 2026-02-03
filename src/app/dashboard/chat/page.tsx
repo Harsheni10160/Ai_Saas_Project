@@ -1,33 +1,20 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Message {
-    role: "user" | "assistant";
-    content: string;
-}
+import ChatTypingIndicator from "@/components/chat-typing-indicator";
 
 export default function ChatPage() {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState("");
-    const [loading, setLoading] = useState(false);
     const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
+    // Fetch workspace ID first
     useEffect(() => {
         fetchWorkspaces();
     }, []);
@@ -44,47 +31,23 @@ export default function ChatPage() {
         }
     };
 
-    const handleSend = async () => {
-        if (!input.trim() || !activeWorkspaceId) return;
+    // Initialize Vercel AI SDK useChat hook
+    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+        api: "/api/chat/stream",
+        body: {
+            workspaceId: activeWorkspaceId,
+            sessionId: "test-session", // In prod this would be dynamic
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+            console.error(error);
+        },
+    });
 
-        const userMessage: Message = { role: "user", content: input };
-        setMessages((prev) => [...prev, userMessage]);
-        setInput("");
-        setLoading(true);
-
-        try {
-            const res = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    workspaceId: activeWorkspaceId,
-                    sessionId: "test-session",
-                    message: input,
-                    conversationHistory: messages,
-                }),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || `Chat request failed with status ${res.status}`);
-            }
-
-            const data = await res.json();
-            const assistantMessage: Message = {
-                role: "assistant",
-                content: data.response,
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Failed to get response from AI";
-            console.error("Chat error:", error);
-            toast.error(message);
-            // Remove the last user message if there was an error
-            setMessages((prev) => prev.slice(0, -1));
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Auto-scroll to bottom
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, isLoading]);
 
     return (
         <div className="h-[calc(100vh-10rem)] flex flex-col space-y-6">
@@ -122,9 +85,9 @@ export default function ChatPage() {
                                 </div>
                             </motion.div>
                         )}
-                        {messages.map((msg, idx) => (
+                        {messages.map((msg: any, idx: number) => (
                             <motion.div
-                                key={idx}
+                                key={msg.id || idx}
                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -151,7 +114,9 @@ export default function ChatPage() {
                             </motion.div>
                         ))}
                     </AnimatePresence>
-                    {loading && (
+
+                    {/* Updated Loading State */}
+                    {isLoading && messages[messages.length - 1]?.role === "user" && (
                         <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -160,13 +125,7 @@ export default function ChatPage() {
                             <div className="w-10 h-10 rounded-2xl bg-pastel-blue hi-border flex-shrink-0 flex items-center justify-center">
                                 <Bot className="w-6 h-6" />
                             </div>
-                            <div className="bg-white hi-border rounded-3xl rounded-tl-none px-6 py-4 flex items-center justify-center">
-                                <div className="flex gap-1.5">
-                                    <div className="w-2 h-2 bg-pastel-green hi-border rounded-full animate-bounce" />
-                                    <div className="w-2 h-2 bg-pastel-green hi-border rounded-full animate-bounce [animation-delay:0.2s]" />
-                                    <div className="w-2 h-2 bg-pastel-green hi-border rounded-full animate-bounce [animation-delay:0.4s]" />
-                                </div>
-                            </div>
+                            <ChatTypingIndicator />
                         </motion.div>
                     )}
                     <div ref={messagesEndRef} />
@@ -174,30 +133,29 @@ export default function ChatPage() {
 
                 {/* Input */}
                 <div className="p-6 bg-secondary/30 border-t-2 border-black">
-                    <div className="flex gap-3 max-w-4xl mx-auto">
+                    <form onSubmit={handleSubmit} className="flex gap-3 max-w-4xl mx-auto">
                         <div className="flex-1 relative">
                             <Input
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                                onChange={handleInputChange}
                                 placeholder="Ask your knowledge base..."
                                 className="h-14 pl-6 pr-12 text-lg rounded-2xl hi-border bg-white shadow-sm focus-visible:ring-pastel-green"
-                                disabled={loading || !activeWorkspaceId}
+                                disabled={isLoading || !activeWorkspaceId}
                             />
                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                <Sparkles className={`w-5 h-5 transition-colors ${loading ? "text-pastel-green animate-pulse" : "text-muted-foreground"}`} />
+                                <Sparkles className={`w-5 h-5 transition-colors ${isLoading ? "text-pastel-green animate-pulse" : "text-muted-foreground"}`} />
                             </div>
                         </div>
                         <Button
-                            onClick={handleSend}
-                            disabled={loading || !activeWorkspaceId || !input.trim()}
+                            type="submit"
+                            disabled={isLoading || !activeWorkspaceId || !input.trim()}
                             className="h-14 w-14 rounded-2xl hi-border bg-black text-white hover:bg-pastel-green hover:text-black transition-all hover:scale-105 active:scale-95 shadow-lg group"
                         >
-                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
+                            {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
                         </Button>
-                    </div>
+                    </form>
                     <p className="text-[10px] text-center mt-3 font-bold uppercase tracking-widest text-muted-foreground opacity-50">
-                        Agent is using {messages.length > 0 ? messages.length : 0} context tokens
+                        {isLoading ? "Generating response..." : "AI ready to chat"}
                     </p>
                 </div>
             </Card>

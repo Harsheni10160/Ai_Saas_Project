@@ -46,7 +46,20 @@ export default function DocumentsPage() {
         const file = acceptedFiles[0];
         if (!file || !activeWorkspaceId) return;
 
+        // Optimistic Update: Add temp document immediately
+        const tempId = `temp-${Date.now()}`;
+        const tempDoc = {
+            id: tempId,
+            name: file.name,
+            size: file.size,
+            status: "uploading",
+            createdAt: new Date().toISOString(),
+            workspaceId: activeWorkspaceId
+        };
+
+        setDocuments((prev) => [tempDoc, ...prev]);
         setUploading(true);
+
         const formData = new FormData();
         formData.append("file", file);
         formData.append("workspaceId", activeWorkspaceId);
@@ -63,16 +76,21 @@ export default function DocumentsPage() {
             }
 
             const doc = await res.json();
-            setDocuments((prev) => [doc, ...prev]);
+
+            // Replace temp doc with real doc
+            setDocuments((prev) => prev.map(d => d.id === tempId ? doc : d));
             toast.success("Document uploaded successfully!");
 
             // Refresh documents to get processing status updates
             const interval = setInterval(async () => {
                 const checkRes = await fetch(`/api/documents?workspaceId=${activeWorkspaceId}`);
-                const checkData = await checkRes.json();
-                setDocuments(checkData);
-                if (checkData.find((d: any) => d.id === doc.id && d.status !== "processing")) {
-                    clearInterval(interval);
+                if (checkRes.ok) {
+                    const checkData = await checkRes.json();
+                    setDocuments(checkData);
+                    const updatedDoc = checkData.find((d: any) => d.id === doc.id);
+                    if (updatedDoc && updatedDoc.status !== "processing") {
+                        clearInterval(interval);
+                    }
                 }
             }, 3000);
 
@@ -80,6 +98,8 @@ export default function DocumentsPage() {
             const message = error instanceof Error ? error.message : "Failed to upload document";
             console.error("Upload error:", error);
             toast.error(message);
+            // Remove temp doc on error
+            setDocuments((prev) => prev.filter(d => d.id !== tempId));
         } finally {
             setUploading(false);
         }

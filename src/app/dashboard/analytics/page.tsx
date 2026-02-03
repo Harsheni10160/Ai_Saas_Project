@@ -7,6 +7,7 @@ import { MessageSquare, TrendingUp, Users, Clock, Loader2, Sparkles, BarChart3, 
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { exportAnalyticsToPDF, exportAnalyticsToCSV } from "@/lib/export-utils";
+import { ChartSkeleton, StatCardSkeleton } from "@/components/loading-skeleton";
 
 export default function AnalyticsPage() {
     const [analytics, setAnalytics] = useState<any>(null);
@@ -90,8 +91,17 @@ export default function AnalyticsPage() {
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-pastel-green" />
+            <div className="space-y-8 pb-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <ChartSkeleton />
+                    <ChartSkeleton />
+                </div>
             </div>
         );
     }

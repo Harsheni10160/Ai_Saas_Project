@@ -33,8 +33,8 @@ export default function SettingsPage() {
         }
     };
 
-    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const embedCode = `<script src="${appUrl}/embed/widget.js" data-workspace="${workspace?.id || 'YOUR_WORKSPACE_ID'}"></script>`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+    const embedCode = `<script src="${appUrl}/embed/widget.js" data-workspace="${workspace?.id || 'YOUR_WORKSPACE_ID'}" data-api-url="${appUrl}"></script>`;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(embedCode);
