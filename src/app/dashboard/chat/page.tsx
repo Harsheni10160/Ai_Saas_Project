@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useChat } from "ai/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -12,6 +11,9 @@ import ChatTypingIndicator from "@/components/chat-typing-indicator";
 
 export default function ChatPage() {
     const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+    const [messages, setMessages] = useState<Array<{ id: string; role: string; content: string }>>([]);
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Fetch workspace ID first
@@ -31,18 +33,69 @@ export default function ChatPage() {
         }
     };
 
-    // Initialize Vercel AI SDK useChat hook
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-        api: "/api/chat/stream",
-        body: {
-            workspaceId: activeWorkspaceId,
-            sessionId: "test-session", // In prod this would be dynamic
-        },
-        onError: (error: Error) => {
-            toast.error(error.message);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value);
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!input.trim() || !activeWorkspaceId) return;
+
+        // Add user message
+        const userMessage = {
+            id: Date.now().toString(),
+            role: "user",
+            content: input,
+        };
+        setMessages((prev) => [...prev, userMessage]);
+        setInput("");
+        setIsLoading(true);
+
+        try {
+            const res = await fetch("/api/chat/stream", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    workspaceId: activeWorkspaceId,
+                    sessionId: "test-session",
+                    message: input,
+                    conversationHistory: messages,
+                }),
+            });
+
+            if (!res.ok) throw new Error("Failed to send message");
+
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error("No response body");
+
+            let assistantMessage = {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: "",
+            };
+
+            setMessages((prev) => [...prev, assistantMessage]);
+
+            const decoder = new TextDecoder();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                assistantMessage.content += chunk;
+                setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { ...assistantMessage };
+                    return updated;
+                });
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to send message");
             console.error(error);
-        },
-    });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Auto-scroll to bottom
     useEffect(() => {
