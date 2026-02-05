@@ -36,7 +36,7 @@ export async function GET(
 
         // Verify user has access to workspace
         const hasAccess = conversation.workspace.members.some(
-            (member) => member.userId === session.user.id
+            (member: { userId: string }) => member.userId === session.user.id
         );
 
         if (!hasAccess) {
