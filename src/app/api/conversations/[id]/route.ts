@@ -47,7 +47,7 @@ export async function GET(
             id: conversation.id,
             sessionId: conversation.sessionId,
             createdAt: conversation.createdAt,
-            messages: conversation.messages.map(msg => ({
+            messages: conversation.messages.map((msg: { id: string; role: string; content: string; sources: any; createdAt: Date }) => ({
                 id: msg.id,
                 role: msg.role,
                 content: msg.content,
