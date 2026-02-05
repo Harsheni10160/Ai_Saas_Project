@@ -3,7 +3,8 @@ import { searchRelevantChunks } from "./vectorSearch";
 import { buildSystemPrompt } from "./prompts";
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
+    baseURL: "https://api.cerebras.ai/v1",
 });
 
 export async function runChat({

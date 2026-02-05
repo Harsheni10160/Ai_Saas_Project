@@ -3,12 +3,10 @@ import { createEmbedding } from "./embeddings";
 import { findRelevantChunks } from "./vector-search";
 
 const getOpenAIClient = () => {
-    // Support both OpenAI and Cerebras Cloud APIs (Cerebras is OpenAI-compatible)
-    const apiKey = process.env.OPENAI_API_KEY || process.env.CEREBRAS_API_KEY || "sk-placeholder";
-    const baseURL = process.env.CEREBRAS_API_KEY 
-        ? "https://api.cerebras.ai/v1"
-        : "https://api.openai.com/v1";
-    
+    // Standardized on Cerebras API (OpenAI-compatible)
+    const apiKey = process.env.CEREBRAS_API_KEY || "sk-placeholder";
+    const baseURL = "https://api.cerebras.ai/v1";
+
     return new OpenAI({
         apiKey,
         baseURL,
@@ -42,7 +40,7 @@ export async function generateRAGResponse(
     sources: string[];
 }> {
     // Check if API key is configured
-    if (!process.env.OPENAI_API_KEY && !process.env.CEREBRAS_API_KEY) {
+    if (!process.env.CEREBRAS_API_KEY) {
         console.warn("No API key configured, using mock response");
         return {
             response: getMockResponse(userMessage),
@@ -78,8 +76,8 @@ Instructions:
 - If the context doesn't contain the answer, acknowledge it
 - Keep responses concise but helpful`;
 
-        // Use Cerebras model if available, otherwise use GPT-4
-        const model = process.env.CEREBRAS_API_KEY ? "llama-3.3-70b" : "gpt-4-turbo-preview";
+        // Use Cerebras model
+        const model = "llama-3.3-70b";
 
         // Generate response
         const completion = await openai.chat.completions.create({

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // Initialize OpenAI
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.CEREBRAS_API_KEY,
 });
 
 export async function POST(req: NextRequest) {
