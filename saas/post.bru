@@ -1,0 +1,32 @@
+meta {
+  name: post
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/chat
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "workspaceId": "PASTE_YOUR_WORKSPACE_ID",
+    "question": "What is this product about?"
+  }
+  
+  
+}
+
+tests {
+  {
+    "workspaceId": "PASTE_YOUR_WORKSPACE_ID",
+    "question": "What is this product about?"
+  }
+  
+}
