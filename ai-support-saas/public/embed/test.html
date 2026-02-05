@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Support Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 AI Support Widget Test Page</h1>
+        <p>This page tests the AI Support widget on a different domain/port.</p>
+
+        <div class="info">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Replace <code>YOUR_WORKSPACE_ID</code> below with your actual workspace ID</li>
+                <li>Update the URLs to match your server (localhost:3000 or production URL)</li>
+                <li>Serve this file on a different port (e.g., <code>python -m http.server 8080</code>)</li>
+                <li>The chat widget should appear in the bottom-right corner</li>
+            </ol>
+        </div>
+
+        <h2>Test Content</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+            magna aliqua.</p>
+        <p>The chat widget should load below. Click the chat button in the bottom-right corner to test it.</p>
+    </div>
+
+    <!-- AI Support Widget -->
+    <!-- REPLACE 'YOUR_WORKSPACE_ID' with your actual workspace ID from the dashboard -->
+    <!-- REPLACE 'http://localhost:3000' with your production URL when deploying -->
+    <script src="http://localhost:3000/embed/widget.js" data-workspace="YOUR_WORKSPACE_ID"
+        data-api-url="http://localhost:3000"></script>
+</body>
+
+</html>
