@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 import { generateRAGResponse } from "@/lib/rag-chat";
 
+export const dynamic = "force-dynamic";
+
 // Initialize OpenAI
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
