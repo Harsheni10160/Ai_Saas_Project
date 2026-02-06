@@ -104,10 +104,11 @@ export default function LoginPage() {
                 <div className="mt-8 pt-6 border-t border-border text-center">
                     <p className="text-sm text-muted-foreground">
                         Don't have an account?{" "}
-                        <a href="/register" className="font-medium text-pastel-green hover:text-pastel-green/80 transition-colors underline">
+                        <a href="/signup" className="font-medium text-pastel-green hover:text-pastel-green/80 transition-colors underline">
                             Sign up
                         </a>
                     </p>
+
                 </div>
             </Card>
         </div>
