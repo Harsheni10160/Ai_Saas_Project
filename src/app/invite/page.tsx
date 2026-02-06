@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2, CheckCircle2, AlertCircle, Users } from "lucide-react";
@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
 
-export default function InvitePage() {
+function InviteContent() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -115,5 +115,20 @@ export default function InvitePage() {
                 ) : null}
             </motion.div>
         </div>
+    );
+}
+
+export default function InvitePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+                <div className="max-w-md w-full hi-card p-8 text-center flex flex-col items-center">
+                    <Loader2 className="w-10 h-10 animate-spin text-pastel-green mb-4" />
+                    <p className="text-muted-foreground italic">Loading invitation...</p>
+                </div>
+            </div>
+        }>
+            <InviteContent />
+        </Suspense>
     );
 }
