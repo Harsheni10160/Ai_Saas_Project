@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
         return new NextResponse(null, {
@@ -16,6 +16,11 @@ export function middleware(request: NextRequest) {
     }
 
     const response = NextResponse.next()
+
+    // Workspace scoping: If user is on a /dashboard route and has no active_workspace_id cookie,
+    // we should ideally set it. However, middleware cannot easily call prisma or getServerSession 
+    // without significant perf impact or complex edge runtime setup.
+    // Instead, we'll ensure the cookie exists or is set by the client/API.
 
     // Add CORS headers to all responses
     response.headers.set('Access-Control-Allow-Origin', '*')

@@ -25,6 +25,8 @@ const menuItems = [
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
+import WorkspaceSwitcher from "./workspace-switcher";
+
 export default function Sidebar() {
     const pathname = usePathname();
 
@@ -39,6 +41,10 @@ export default function Sidebar() {
                     <Sparkles size={18} className="fill-black" />
                 </div>
                 <span className="text-xl font-serif font-bold tracking-tight">AI Agent</span>
+            </div>
+
+            <div className="mb-6">
+                <WorkspaceSwitcher />
             </div>
 
             <nav className="flex-1 space-y-2">
