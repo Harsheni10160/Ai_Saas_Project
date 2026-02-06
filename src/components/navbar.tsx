@@ -17,9 +17,11 @@ export function Navbar() {
                 </div>
                 <div className="flex items-center gap-4">
                     <Link href="/login" className="text-sm font-medium hover:underline">Log in</Link>
-                    <Button variant="default" className="hi-pill-btn h-auto py-2 text-sm">
-                        Get Started
-                    </Button>
+                    <Link href="/signup">
+                        <Button variant="default" className="hi-pill-btn h-auto py-2 text-sm">
+                            Get Started
+                        </Button>
+                    </Link>
                 </div>
             </nav>
         </header>

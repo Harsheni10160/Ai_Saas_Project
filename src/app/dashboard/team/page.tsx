@@ -142,7 +142,7 @@ export default function TeamPage() {
     };
 
     const copyInviteLink = () => {
-        const inviteLink = `${window.location.origin}/signup?workspace=${workspace?.id}`;
+        const inviteLink = `${window.location.origin}/invite?workspace=${workspace?.id}`;
         navigator.clipboard.writeText(inviteLink);
         setCopied(true);
         toast.success("Invite link copied!");

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ShieldCheck, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export function Hero() {
     return (
@@ -25,9 +26,11 @@ export function Hero() {
                     Stop answering the same FAQs. Upload your docs, and let our AI handle customer support instantly.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-                    <Button className="hi-pill-btn h-14 px-10 text-lg">
-                        Start Your Free Trial
-                    </Button>
+                    <Link href="/signup">
+                        <Button className="hi-pill-btn h-14 px-10 text-lg">
+                            Start Your Free Trial
+                        </Button>
+                    </Link>
                     <Button variant="outline" className="border rounded-full h-14 px-10 text-lg bg-transparent hover:bg-black/5 transition-colors">
                         Watch Demo
                     </Button>
