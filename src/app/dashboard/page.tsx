@@ -69,7 +69,7 @@ export default function DashboardPage() {
         { id: 1, label: "Upload your first document", completed: false, link: "/dashboard/documents" },
         { id: 2, label: "Configure AI Agent persona", completed: false, link: "/dashboard/settings" },
         { id: 3, label: "Test chat in playground", completed: false, link: "/dashboard/chat" },
-        { id: 4, label: "Install chat widget", completed: false, link: "/dashboard/settings#widget" },
+        { id: 4, label: "Install chat widget", completed: false, link: "/dashboard/embed" },
         { id: 5, label: "Invite team members", completed: false, link: "/dashboard/team" },
     ]);
 

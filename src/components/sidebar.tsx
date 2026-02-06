@@ -20,6 +20,7 @@ const menuItems = [
     { icon: FileText, label: "Documents", href: "/dashboard/documents" },
     { icon: MessageSquare, label: "Chat History", href: "/dashboard/history" },
     { icon: Users, label: "Team", href: "/dashboard/team" },
+    { icon: Sparkles, label: "Embed Widget", href: "/dashboard/embed" },
     { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];

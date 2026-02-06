@@ -76,39 +76,7 @@ export default function SettingsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-8"
                 >
-                    {/* Widget Embed */}
-                    <Card className="hi-card p-8 group overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-pastel-yellow/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-pastel-yellow/20 transition-colors" />
 
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-pastel-yellow hi-border flex items-center justify-center shadow-sm">
-                                <Code className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold">Widget Embed</h2>
-                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Installation</p>
-                            </div>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                            Copy and paste this snippet into your website's HTML, right before the closing <code className="bg-secondary px-1 py-0.5 rounded font-bold">&lt;/body&gt;</code> tag to launch your AI.
-                        </p>
-
-                        <div className="relative group/code">
-                            <pre className="bg-secondary/50 p-6 rounded-2xl overflow-x-auto text-xs font-mono border-2 border-black/10 group-hover/code:border-black/20 transition-colors">
-                                <code>{embedCode}</code>
-                            </pre>
-                            <Button
-                                onClick={copyToClipboard}
-                                className="absolute top-3 right-3 hi-border bg-white hover:bg-black hover:text-white transition-all scale-90 group-hover/code:scale-100"
-                                size="sm"
-                                variant="outline"
-                            >
-                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                <span className="ml-2 font-bold">{copied ? "Copied" : "Copy"}</span>
-                            </Button>
-                        </div>
-                    </Card>
 
                     {/* Agent Identity */}
                     <Card className="hi-card p-8 group overflow-hidden">
