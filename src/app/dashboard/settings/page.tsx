@@ -5,15 +5,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Check, Palette, Code, Settings2, Loader2, Sparkles, User, ShieldCheck, Send, LogOut, AlertTriangle } from "lucide-react";
+import { Copy, Check, Palette, Code, Settings2, Loader2, Sparkles, User, ShieldCheck, Send, LogOut, AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import DeleteWorkspaceModal from "@/components/delete-workspace-modal";
 
 export default function SettingsPage() {
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(true);
     const [workspace, setWorkspace] = useState<any>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         fetchWorkspace();
@@ -21,16 +25,33 @@ export default function SettingsPage() {
 
     const fetchWorkspace = async () => {
         try {
+            // Fetch multiple workspaces to find the active one (or just the first for now)
             const res = await fetch("/api/workspaces");
+
+            if (!res.ok) throw new Error("Failed to load");
+
             const data = await res.json();
             if (data.length > 0) {
-                setWorkspace(data[0]);
+                // Try to match active workspace from cookie
+                const activeId = document.cookie
+                    .split("; ")
+                    .find((row) => row.startsWith("active_workspace_id="))
+                    ?.split("=")[1];
+
+                const active = data.find((w: any) => w.id === activeId) || data[0];
+                setWorkspace(active);
             }
         } catch (error) {
             toast.error("Failed to load settings");
         } finally {
             setLoading(false);
         }
+    };
+
+    const onWorkspaceDeleted = () => {
+        // Redirection logic: redirect to dashboard which will handle picking a new active workspace
+        router.push("/dashboard");
+        router.refresh();
     };
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
@@ -222,10 +243,33 @@ export default function SettingsPage() {
                                     Logout
                                 </Button>
                             </div>
+
+                            <div className="p-4 bg-destructive/5 hi-border rounded-2xl border-dashed">
+                                <p className="text-sm font-bold mb-2">Delete Workspace</p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    Permanently delete this workspace and all its data. This cannot be undone.
+                                </p>
+                                <Button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    variant="outline"
+                                    className="w-full hi-border rounded-xl font-bold border-destructive text-destructive hover:bg-destructive hover:text-white transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={16} />
+                                    Delete Workspace
+                                </Button>
+                            </div>
                         </div>
                     </Card>
                 </motion.div>
             </div>
+
+            <DeleteWorkspaceModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                workspaceId={workspace?.id}
+                workspaceName={workspace?.name}
+                onDeleted={onWorkspaceDeleted}
+            />
         </div>
     );
 }

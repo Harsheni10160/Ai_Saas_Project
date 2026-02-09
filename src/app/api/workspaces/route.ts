@@ -12,14 +12,14 @@ export async function POST(req: Request) {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
         const { name } = body;
 
         if (!name) {
-            return new NextResponse("Name is required", { status: 400 });
+            return NextResponse.json({ error: "Name is required" }, { status: 400 });
         }
 
         const workspace = await prisma.workspace.create({
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         return NextResponse.json(workspace);
     } catch (error) {
         console.error("[WORKSPACES_POST]", error);
-        return new NextResponse("Internal Error", { status: 500 });
+        return NextResponse.json({ error: "Internal Error" }, { status: 500 });
     }
 }
 
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const workspaces = await prisma.workspace.findMany({
@@ -67,6 +67,6 @@ export async function GET(req: Request) {
         return NextResponse.json(workspaces);
     } catch (error) {
         console.error("[WORKSPACES_GET]", error);
-        return new NextResponse("Internal Error", { status: 500 });
+        return NextResponse.json({ error: "Internal Error" }, { status: 500 });
     }
 }

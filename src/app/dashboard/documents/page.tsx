@@ -22,6 +22,13 @@ export default function DocumentsPage() {
     const fetchWorkspaces = async () => {
         try {
             const res = await fetch("/api/workspaces");
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load workspaces" }));
+                toast.error(errorData.error || "Failed to fetch workspaces");
+                return;
+            }
+
             const data = await res.json();
             if (data.length > 0) {
                 setActiveWorkspaceId(data[0].id);
@@ -35,6 +42,13 @@ export default function DocumentsPage() {
     const fetchDocuments = async (workspaceId: string) => {
         try {
             const res = await fetch(`/api/documents?workspaceId=${workspaceId}`);
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load documents" }));
+                console.error("Failed to fetch documents:", errorData.error);
+                return;
+            }
+
             const data = await res.json();
             setDocuments(data);
         } catch (error) {

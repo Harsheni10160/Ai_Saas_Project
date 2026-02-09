@@ -16,10 +16,10 @@ export default function EmbedPage() {
     useEffect(() => {
         const fetchWorkspace = async () => {
             try {
-                const res = await fetch("/api/workspaces");
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    setWorkspace(data[0]);
+                const res = await fetch("/api/workspaces/active");
+                if (res.ok) {
+                    const data = await res.json();
+                    setWorkspace(data);
                 }
             } catch (error) {
                 console.error("Failed to load workspace", error);
@@ -35,7 +35,7 @@ export default function EmbedPage() {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
     const embedScript = `<script
   src="${appUrl}/embed/widget.js"
-  data-workspace="${workspace?.id || 'YOUR_WORKSPACE_ID'}"
+  data-workspace="${workspace?.widgetPublicKey || 'YOUR_WIDGET_KEY'}"
   data-api-url="${appUrl}"
 ></script>`;
 
@@ -84,7 +84,7 @@ export default function EmbedPage() {
                         </div>
 
                         <p className="text-muted-foreground mb-6 leading-relaxed">
-                            Copy and paste this snippet into your website's HTML, right before the closing <code className="bg-secondary px-2 py-0.5 rounded font-bold border-2 border-black/5">&lt;/body&gt;</code> tag.
+                            Copy and paste this snippet into your website&apos;s HTML, right before the closing <code className="bg-secondary px-2 py-0.5 rounded font-bold border-2 border-black/5">&lt;/body&gt;</code> tag.
                         </p>
 
                         <div className="relative group/code">

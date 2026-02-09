@@ -31,25 +31,30 @@ export default function WorkspaceSwitcher() {
     const fetchWorkspaces = async () => {
         try {
             const res = await fetch("/api/workspaces");
-            if (res.ok) {
-                const data = await res.json();
-                setWorkspaces(data);
 
-                // Try to get active workspace from cookie
-                const activeId = document.cookie
-                    .split("; ")
-                    .find((row) => row.startsWith("active_workspace_id="))
-                    ?.split("=")[1];
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load workspaces" }));
+                console.error("Failed to fetch workspaces:", errorData.error);
+                return;
+            }
 
-                if (activeId) {
-                    const active = data.find((w: Workspace) => w.id === activeId);
-                    if (active) setActiveWorkspace(active);
-                    else if (data.length > 0) setActiveWorkspace(data[0]);
-                } else if (data.length > 0) {
-                    setActiveWorkspace(data[0]);
-                    // Set default cookie if not exists
-                    document.cookie = `active_workspace_id=${data[0].id}; path=/; max-age=2592000; samesite=lax`;
-                }
+            const data = await res.json();
+            setWorkspaces(data);
+
+            // Try to get active workspace from cookie
+            const activeId = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("active_workspace_id="))
+                ?.split("=")[1];
+
+            if (activeId) {
+                const active = data.find((w: Workspace) => w.id === activeId);
+                if (active) setActiveWorkspace(active);
+                else if (data.length > 0) setActiveWorkspace(data[0]);
+            } else if (data.length > 0) {
+                setActiveWorkspace(data[0]);
+                // Set default cookie if not exists
+                document.cookie = `active_workspace_id=${data[0].id}; path=/; max-age=2592000; samesite=lax`;
             }
         } catch (error) {
             console.error("Failed to fetch workspaces", error);

@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
                     // Save complete response to database in background
                     // Note: We'll need to reconstruct the full completion from stream
-                    let fullCompletion = "";
+                    const fullCompletion = "";
                     // This is a limitation of streaming - consider using a better approach
                 } catch (error) {
                     controller.error(error);

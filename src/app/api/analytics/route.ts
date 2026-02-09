@@ -10,14 +10,14 @@ export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { searchParams } = new URL(req.url);
         const workspaceId = searchParams.get("workspaceId");
 
         if (!workspaceId) {
-            return new NextResponse("Missing workspace ID", { status: 400 });
+            return NextResponse.json({ error: "Missing workspace ID" }, { status: 400 });
         }
 
         // Total conversations
@@ -89,6 +89,6 @@ export async function GET(req: NextRequest) {
         });
     } catch (error) {
         console.error("ANALYTICS_ERROR", error);
-        return new NextResponse("Internal error", { status: 500 });
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }

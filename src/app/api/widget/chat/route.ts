@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Validate workspace exists
+        // Validate workspace exists using the public widget key
         const workspace = await prisma.workspace.findUnique({
-            where: { id: workspaceId },
+            where: { widgetPublicKey: workspaceId } as any,
         });
 
         if (!workspace) {
@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Find or create conversation
+        // Find or create conversation using internal workspace ID
         let conversation = await prisma.conversation.findFirst({
-            where: { workspaceId, sessionId },
+            where: { workspaceId: workspace.id, sessionId },
         });
 
         if (!conversation) {
             conversation = await prisma.conversation.create({
-                data: { workspaceId, sessionId },
+                data: { workspaceId: workspace.id, sessionId },
             });
         }
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
         // Generate AI response
         const { response, sources } = await generateRAGResponse(
-            workspaceId,
+            workspace.id,
             message,
             conversationHistory
         );
@@ -75,9 +75,9 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Update workspace query count
+        // Update workspace query count using internal ID
         await prisma.workspace.update({
-            where: { id: workspaceId },
+            where: { id: workspace.id },
             data: { monthlyQueries: { increment: 1 } },
         });
 

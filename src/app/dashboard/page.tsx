@@ -84,10 +84,11 @@ export default function DashboardPage() {
         try {
             setLoading(true);
 
-            // ✅ OPTIMIZED: Parallel API calls instead of sequential
+            // ✅ OPTIMIZED: Parallel API calls with proper error handling
             const [wsRes, docRes, analyticsRes] = await Promise.all([
                 fetch("/api/workspaces"),
                 fetch("/api/workspaces").then(async (res) => {
+                    if (!res.ok) return null;
                     const wsData = await res.json();
                     if (wsData && wsData.length > 0) {
                         return fetch(`/api/documents?workspaceId=${wsData[0].id}`);
@@ -95,6 +96,7 @@ export default function DashboardPage() {
                     return null;
                 }),
                 fetch("/api/workspaces").then(async (res) => {
+                    if (!res.ok) return null;
                     const wsData = await res.json();
                     if (wsData && wsData.length > 0) {
                         return fetch(`/api/analytics?workspaceId=${wsData[0].id}`).catch(() => null);
@@ -103,17 +105,27 @@ export default function DashboardPage() {
                 }),
             ]);
 
+            // Check if workspaces request succeeded
+            if (!wsRes.ok) {
+                const errorData = await wsRes.json().catch(() => ({ error: "Failed to load workspaces" }));
+                toast.error(errorData.error || "Failed to load workspaces");
+                return;
+            }
+
             const wsData = await wsRes.json();
 
             if (wsData && wsData.length > 0) {
                 const activeWs = wsData[0];
                 setWorkspace(activeWs);
 
-                // Parse parallel responses
-                const docs = docRes ? await docRes.json() : [];
-                let analyticsData = { totalMessages: 0 };
+                // Parse parallel responses with error handling
+                let docs = [];
+                if (docRes && docRes.ok) {
+                    docs = await docRes.json().catch(() => []);
+                }
 
-                if (analyticsRes) {
+                let analyticsData = { totalMessages: 0 };
+                if (analyticsRes && analyticsRes.ok) {
                     try {
                         analyticsData = await analyticsRes.json();
                     } catch (err) {

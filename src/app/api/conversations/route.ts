@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { searchParams } = new URL(req.url);
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         const offset = parseInt(searchParams.get("offset") ?? "0", 10);
 
         if (!workspaceId) {
-            return new NextResponse("Workspace ID required", { status: 400 });
+            return NextResponse.json({ error: "Workspace ID required" }, { status: 400 });
         }
 
         // Verify user has access to workspace
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         });
 
         if (!workspace) {
-            return new NextResponse("Forbidden", { status: 403 });
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
         // Fetch conversations with metadata
@@ -84,6 +84,6 @@ export async function GET(req: NextRequest) {
         });
     } catch (error) {
         console.error("GET_CONVERSATIONS_ERROR:", error);
-        return new NextResponse("Internal error", { status: 500 });
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }

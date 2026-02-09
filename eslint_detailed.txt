@@ -1,0 +1,101 @@
+﻿
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\(auth)\login\page.tsx
+   37:25  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  106:28  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\(auth)\signup\page.tsx
+  39:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\chat\route.ts
+  62:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\chat\stream\route.ts
+   69:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\conversations\[id]\route.ts
+  50:109  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\register\route.ts
+  46:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\webhook\route.ts
+  26:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\api\widget\chat\route.ts
+  74:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\analytics\page.tsx
+  13:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\chat\page.tsx
+   92:25  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  136:88  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  141:45  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\documents\page.tsx
+   12:48   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   90:59   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  327:105  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  327:126  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\embed\page.tsx
+  12:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\history\page.tsx
+   25:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:79  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\page.tsx
+  59:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\settings\page.tsx
+  16:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\dashboard\team\page.tsx
+  25:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\app\invite\page.tsx
+  58:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\components\hero.tsx
+  65:67   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  75:106  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  75:115  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\components\loading-skeleton.tsx
+  106:33  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\components\loading-skeleton.tsx:106:33
+  104 |                         variant="rectangular"
+  105 |                         className="flex-1"
+> 106 |                         height={Math.random() * 200 + 50}
+      |                                 ^^^^^^^^^^^^^ Cannot call impure function
+  107 |                     />
+  108 |                 ))}
+  109 |             </div>  react-hooks/purity
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\lib\cache.ts
+   5:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  66:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  78:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\shars\OneDrive\Desktop\SAAS 1\src\lib\export-utils.ts
+   74:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 45 problems (45 errors, 0 warnings)
+

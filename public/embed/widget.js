@@ -48,6 +48,43 @@
     let sessionId = localStorage.getItem('ai_support_session_id') || 'sess_' + Math.random().toString(36).substring(2, 15);
     localStorage.setItem('ai_support_session_id', sessionId);
     let conversationHistory = [];
+    let config = null;
+
+    // Fetch Config
+    async function fetchConfig() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/widget/config?key=${WORKSPACE_ID}`);
+            if (response.ok) {
+                config = await response.json();
+                applyConfig();
+            }
+        } catch (error) {
+            console.error('AI Support Widget: Failed to fetch config', error);
+        }
+    }
+
+    function applyConfig() {
+        if (!config) return;
+
+        // Update header
+        const headerTitle = container.querySelector('#chat-header div');
+        if (headerTitle) {
+            headerTitle.innerHTML = `<span class="status-dot"></span>${config.chatbotName || 'AI Support'}`;
+        }
+
+        // Apply primary color
+        if (config.primaryColor) {
+            const button = container.querySelector('#ai-support-button');
+            const header = container.querySelector('#chat-header');
+            const sendButton = container.querySelector('#send-button');
+
+            if (button) button.style.backgroundColor = config.primaryColor;
+            if (header) header.style.backgroundColor = config.primaryColor;
+            if (sendButton) sendButton.style.backgroundColor = config.primaryColor;
+        }
+    }
+
+    fetchConfig();
 
     // Toggle Chat
     button.addEventListener('click', () => {

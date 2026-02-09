@@ -24,6 +24,13 @@ export default function ChatPage() {
     const fetchWorkspaces = async () => {
         try {
             const res = await fetch("/api/workspaces");
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load workspaces" }));
+                toast.error(errorData.error || "Failed to fetch workspaces");
+                return;
+            }
+
             const data = await res.json();
             if (data.length > 0) {
                 setActiveWorkspaceId(data[0].id);
@@ -68,7 +75,7 @@ export default function ChatPage() {
             const reader = res.body?.getReader();
             if (!reader) throw new Error("No response body");
 
-            let assistantMessage = {
+            const assistantMessage = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
                 content: "",

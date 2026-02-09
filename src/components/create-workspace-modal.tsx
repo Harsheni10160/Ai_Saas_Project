@@ -38,18 +38,21 @@ export default function CreateWorkspaceModal() {
                 body: JSON.stringify({ name }),
             });
 
-            if (res.ok) {
-                const workspace = await res.json();
-                toast.success(`Workspace "${workspace.name}" created!`);
-                // Set as active
-                document.cookie = `active_workspace_id=${workspace.id}; path=/; max-age=2592000; samesite=lax`;
-                setOpen(false);
-                setName("");
-                router.refresh();
-            } else {
-                toast.error("Failed to create workspace");
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to create workspace" }));
+                toast.error(errorData.error || "Failed to create workspace");
+                return;
             }
+
+            const workspace = await res.json();
+            toast.success(`Workspace "${workspace.name}" created!`);
+            // Set as active
+            document.cookie = `active_workspace_id=${workspace.id}; path=/; max-age=2592000; samesite=lax`;
+            setOpen(false);
+            setName("");
+            router.refresh();
         } catch (error) {
+            console.error("Create workspace error:", error);
             toast.error("An error occurred");
         } finally {
             setLoading(false);

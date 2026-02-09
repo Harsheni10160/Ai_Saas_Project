@@ -24,6 +24,13 @@ export default function AnalyticsPage() {
     const fetchWorkspaces = async () => {
         try {
             const res = await fetch("/api/workspaces");
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load workspaces" }));
+                toast.error(errorData.error || "Failed to fetch workspaces");
+                return;
+            }
+
             const data = await res.json();
             if (data.length > 0) {
                 setWorkspaceId(data[0].id);
@@ -38,6 +45,13 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async (id: string) => {
         try {
             const res = await fetch(`/api/analytics?workspaceId=${id}`);
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to load analytics" }));
+                console.error("Failed to fetch analytics:", errorData.error);
+                return;
+            }
+
             const data = await res.json();
             setAnalytics(data);
         } catch (error) {
