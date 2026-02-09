@@ -42,24 +42,22 @@ export default function TeamPage() {
         try {
             setLoading(true);
 
-            // Get workspace
-            const wsRes = await fetch("/api/workspaces");
-            const wsData = await wsRes.json();
+            // Get active workspace
+            const wsRes = await fetch("/api/workspaces/active");
+            if (!wsRes.ok) return;
 
-            if (wsData && wsData.length > 0) {
-                const activeWs = wsData[0];
-                setWorkspace(activeWs);
+            const activeWs = await wsRes.json();
+            setWorkspace(activeWs);
 
-                // Get members
-                const membersRes = await fetch(`/api/team/members?workspaceId=${activeWs.id}`);
-                if (membersRes.ok) {
-                    const membersData = await membersRes.json();
-                    setMembers(membersData);
+            // Get members
+            const membersRes = await fetch(`/api/team/members?workspaceId=${activeWs.id}`);
+            if (membersRes.ok) {
+                const membersData = await membersRes.json();
+                setMembers(membersData);
 
-                    // Find current user's role
-                    const currentMember = membersData.find((m: any) => m.userId === session?.user?.id);
-                    setCurrentUserRole(currentMember?.role || null);
-                }
+                // Find current user's role
+                const currentMember = membersData.find((m: any) => m.userId === session?.user?.id);
+                setCurrentUserRole(currentMember?.role || null);
             }
         } catch (error) {
             console.error("Team error:", error);
@@ -84,7 +82,14 @@ export default function TeamPage() {
 
         try {
             setInviting(true);
-            const res = await fetch("/api/team/invite", {
+            const inviteUrl = "/api/team/invite";
+            console.log("Inviting to:", inviteUrl, {
+                workspaceId: workspace.id,
+                email: inviteEmail.toLowerCase(),
+                role: inviteRole,
+            });
+
+            const res = await fetch(inviteUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

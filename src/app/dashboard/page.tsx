@@ -84,90 +84,73 @@ export default function DashboardPage() {
         try {
             setLoading(true);
 
-            // ✅ OPTIMIZED: Parallel API calls with proper error handling
-            const [wsRes, docRes, analyticsRes] = await Promise.all([
-                fetch("/api/workspaces"),
-                fetch("/api/workspaces").then(async (res) => {
-                    if (!res.ok) return null;
-                    const wsData = await res.json();
-                    if (wsData && wsData.length > 0) {
-                        return fetch(`/api/documents?workspaceId=${wsData[0].id}`);
-                    }
-                    return null;
-                }),
-                fetch("/api/workspaces").then(async (res) => {
-                    if (!res.ok) return null;
-                    const wsData = await res.json();
-                    if (wsData && wsData.length > 0) {
-                        return fetch(`/api/analytics?workspaceId=${wsData[0].id}`).catch(() => null);
-                    }
-                    return null;
-                }),
-            ]);
-
-            // Check if workspaces request succeeded
-            if (!wsRes.ok) {
-                const errorData = await wsRes.json().catch(() => ({ error: "Failed to load workspaces" }));
-                toast.error(errorData.error || "Failed to load workspaces");
+            // 1. Get Active Workspace First
+            const activewsRes = await fetch("/api/workspaces/active");
+            if (!activewsRes.ok) {
+                // If no active workspace, redirect to workspace creation or show error
+                setLoading(false);
                 return;
             }
+            const activeWs = await activewsRes.json();
+            setWorkspace(activeWs);
 
-            const wsData = await wsRes.json();
+            // 2. Parallel API calls for workspace-specific data
+            const [docRes, analyticsRes] = await Promise.all([
+                fetch(`/api/documents?workspaceId=${activeWs.id}`).catch(() => null),
+                fetch(`/api/analytics?workspaceId=${activeWs.id}`).catch(() => null),
+            ]);
 
-            if (wsData && wsData.length > 0) {
-                const activeWs = wsData[0];
-                setWorkspace(activeWs);
-
-                // Parse parallel responses with error handling
-                let docs = [];
-                if (docRes && docRes.ok) {
-                    docs = await docRes.json().catch(() => []);
-                }
-
-                let analyticsData = { totalMessages: 0 };
-                if (analyticsRes && analyticsRes.ok) {
-                    try {
-                        analyticsData = await analyticsRes.json();
-                    } catch (err) {
-                        console.log("Analytics not available yet");
-                    }
-                }
-
-                // Check widget installation (from localStorage)
-                const widgetInstalled = typeof window !== 'undefined' && localStorage.getItem(`widget_installed_${activeWs.id}`) === 'true';
-
-                // Calculate stats
-                const hasDocs = docs && docs.length > 0;
-                const isAgentConfigured = activeWs.chatbotName !== null && activeWs.chatbotName.trim() !== '';
-                const hasMessages = analyticsData.totalMessages > 0;
-                const teamMemberCount = activeWs.members?.length || 0;
-                const hasTeamMembers = teamMemberCount > 1;
-
-                setStats({
-                    documents: docs ? docs.length : 0,
-                    agentConfigured: isAgentConfigured,
-                    totalMessages: analyticsData.totalMessages || 0,
-                    teamMembers: teamMemberCount,
-                });
-
-                // Update checklist based on real data with animation
-                setChecklist(prev => prev.map(item => {
-                    let newCompleted = item.completed;
-
-                    if (item.id === 1 && hasDocs) newCompleted = true;
-                    if (item.id === 2 && isAgentConfigured) newCompleted = true;
-                    if (item.id === 3 && hasMessages) newCompleted = true;
-                    if (item.id === 4 && widgetInstalled) newCompleted = true;
-                    if (item.id === 5 && hasTeamMembers) newCompleted = true;
-
-                    // Show toast when item newly completes
-                    if (!item.completed && newCompleted) {
-                        toast.success(`✅ ${item.label} - Complete!`);
-                    }
-
-                    return { ...item, completed: newCompleted };
-                }));
+            // Parse parallel responses with error handling
+            let docs = [];
+            if (docRes && docRes.ok) {
+                docs = await docRes.json().catch(() => []);
             }
+
+            let analyticsData = { totalMessages: 0 };
+            if (analyticsRes && analyticsRes.ok) {
+                try {
+                    analyticsData = await analyticsRes.json();
+                } catch (err) {
+                    console.log("Analytics not available yet");
+                }
+            }
+
+            // Check widget installation (from localStorage)
+            const widgetInstalled = typeof window !== 'undefined' && localStorage.getItem(`widget_installed_${activeWs.id}`) === 'true';
+
+            // Calculate stats
+            const hasDocs = docs && docs.length > 0;
+            const isAgentConfigured = activeWs.chatbotName !== null && activeWs.chatbotName?.trim() !== '';
+            const teamMemberCount = activeWs.members?.length || 1; // Default to 1 (owner) if missing
+            const hasTeamMembers = teamMemberCount > 1;
+
+            // Stats logic
+            const hasMessages = analyticsData.totalMessages > 0;
+
+            setStats({
+                documents: docs ? docs.length : 0,
+                agentConfigured: isAgentConfigured,
+                totalMessages: analyticsData.totalMessages || 0,
+                teamMembers: teamMemberCount,
+            });
+
+            // Update checklist based on real data with animation
+            setChecklist(prev => prev.map(item => {
+                let newCompleted = item.completed;
+
+                if (item.id === 1 && hasDocs) newCompleted = true;
+                if (item.id === 2 && isAgentConfigured) newCompleted = true;
+                if (item.id === 3 && hasMessages) newCompleted = true;
+                if (item.id === 4 && widgetInstalled) newCompleted = true;
+                if (item.id === 5 && hasTeamMembers) newCompleted = true;
+
+                // Show toast when item newly completes
+                if (!item.completed && newCompleted) {
+                    toast.success(`✅ ${item.label} - Complete!`);
+                }
+
+                return { ...item, completed: newCompleted };
+            }));
         } catch (error) {
             console.error("Dashboard error:", error);
             toast.error("Failed to load dashboard data");

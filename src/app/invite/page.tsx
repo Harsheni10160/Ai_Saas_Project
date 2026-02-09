@@ -51,9 +51,12 @@ function InviteContent() {
             setJoined(true);
             toast.success("Joined workspace successfully!");
 
+            // Set active workspace cookie for consistency
+            document.cookie = `active_workspace_id=${workspaceId}; path=/; max-age=2592000; samesite=lax`;
+
             // Auto redirect after a short delay
             setTimeout(() => {
-                router.push("/dashboard");
+                router.push(`/dashboard?workspace=${workspaceId}`);
             }, 2000);
         } catch (err: any) {
             console.error("Join workspace error:", err);

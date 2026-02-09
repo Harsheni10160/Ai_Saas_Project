@@ -18,27 +18,27 @@ export default function AnalyticsPage() {
     const [showExportMenu, setShowExportMenu] = useState(false);
 
     useEffect(() => {
-        fetchWorkspaces();
+        fetchActiveWorkspace();
     }, []);
 
-    const fetchWorkspaces = async () => {
+    const fetchActiveWorkspace = async () => {
         try {
-            const res = await fetch("/api/workspaces");
+            const res = await fetch("/api/workspaces/active");
 
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: "Failed to load workspaces" }));
-                toast.error(errorData.error || "Failed to fetch workspaces");
+                const errorData = await res.json().catch(() => ({ error: "Failed to load active workspace" }));
+                toast.error(errorData.error || "Failed to fetch active workspace");
                 return;
             }
 
             const data = await res.json();
-            if (data.length > 0) {
-                setWorkspaceId(data[0].id);
-                setWorkspaceName(data[0].name || 'Workspace');
-                fetchAnalytics(data[0].id);
+            if (data.id) {
+                setWorkspaceId(data.id);
+                setWorkspaceName(data.name || 'Workspace');
+                fetchAnalytics(data.id);
             }
         } catch (error) {
-            toast.error("Failed to fetch workspaces");
+            toast.error("Failed to fetch active workspace");
         }
     };
 

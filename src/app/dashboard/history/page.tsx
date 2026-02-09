@@ -39,24 +39,23 @@ export default function ChatHistoryPage() {
         try {
             setLoading(true);
 
-            // Get workspace
-            const wsRes = await fetch("/api/workspaces");
-            const wsData = await wsRes.json();
+            // Get active workspace
+            const wsRes = await fetch("/api/workspaces/active");
 
-            if (wsData && wsData.length > 0) {
-                const activeWs = wsData[0];
-                setWorkspace(activeWs);
+            if (!wsRes.ok) return;
 
-                // Fetch conversations
-                const convRes = await fetch(
-                    `/api/conversations?workspaceId=${activeWs.id}&limit=${limit}&offset=${page * limit}`
-                );
+            const activeWs = await wsRes.json();
+            setWorkspace(activeWs);
 
-                if (convRes.ok) {
-                    const data = await convRes.json();
-                    setConversations(data.conversations || []);
-                    setTotal(data.total || 0);
-                }
+            // Fetch conversations
+            const convRes = await fetch(
+                `/api/conversations?workspaceId=${activeWs.id}&limit=${limit}&offset=${page * limit}`
+            );
+
+            if (convRes.ok) {
+                const data = await convRes.json();
+                setConversations(data.conversations || []);
+                setTotal(data.total || 0);
             }
         } catch (error) {
             console.error("History error:", error);

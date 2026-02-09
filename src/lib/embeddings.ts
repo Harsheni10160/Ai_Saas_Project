@@ -1,20 +1,23 @@
 import OpenAI from "openai";
 
 const getEmbeddingsClient = () => {
-    // Standardized on Cerebras API (OpenAI-compatible)
-    const apiKey = process.env.CEREBRAS_API_KEY || "sk-placeholder";
-    const baseURL = "https://api.cerebras.ai/v1";
+    // Embeddings require OpenAI as Cerebras doesn't support them currently
+    const apiKey = process.env.OPENAI_API_KEY || process.env.CEREBRAS_API_KEY || "sk-placeholder";
+
+    // Explicitly use OpenAI for embeddings unless someone provides a specific different baseURL
+    // Cerebras baseURL "https://api.cerebras.ai/v1" will NOT work for embeddings
+    const baseURL = process.env.OPENAI_API_KEY ? undefined : undefined;
 
     return new OpenAI({
         apiKey,
-        baseURL,
+        // Only use custom baseURL if specifically using a provider that supports embeddings
+        // Default to OpenAI's actual endpoint if we have an OpenAI key
     });
 };
 
 export async function createEmbedding(text: string): Promise<number[]> {
-    if (!process.env.CEREBRAS_API_KEY) {
-        console.warn("No API key configured, returning placeholder embedding");
-        // Return a placeholder embedding (1536 dimensions for text-embedding-3-small)
+    if (!process.env.OPENAI_API_KEY && !process.env.CEREBRAS_API_KEY) {
+        console.warn("No API key configured for embeddings, returning placeholder embedding");
         return Array(1536).fill(0);
     }
 
@@ -23,12 +26,14 @@ export async function createEmbedding(text: string): Promise<number[]> {
     try {
         const response = await openai.embeddings.create({
             model: "text-embedding-3-small",
-            input: text,
+            input: text.replace(/\n/g, " "), // Best practice for OpenAI embeddings
         });
         return response.data[0].embedding;
-    } catch (error) {
-        console.warn("Embedding creation failed, returning placeholder");
-        // Return placeholder on error
+    } catch (error: any) {
+        console.error("EMBEDDING_CREATION_FAILED:", error?.message || error);
+        if (error?.status === 404 || error?.message?.includes("Cerebras")) {
+            console.warn("Cerebras does not support embeddings. Please provide an OPENAI_API_KEY.");
+        }
         return Array(1536).fill(0);
     }
 }

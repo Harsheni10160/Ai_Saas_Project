@@ -7,13 +7,14 @@ export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { workspaceId, email, role } = await req.json();
+        const body = await req.json().catch(() => ({}));
+        const { workspaceId, email, role } = body;
 
         if (!workspaceId || !email) {
-            return new NextResponse("Missing required fields", { status: 400 });
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
         // Verify current user is workspace owner
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!currentUserMembership) {
-            return new NextResponse("Only workspace owners can invite members", { status: 403 });
+            return NextResponse.json({ error: "Only workspace owners can invite members" }, { status: 403 });
         }
 
         // Check if user with email exists
@@ -85,6 +86,6 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         console.error("INVITE_MEMBER_ERROR:", error);
-        return new NextResponse("Internal error", { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

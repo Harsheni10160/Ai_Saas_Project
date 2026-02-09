@@ -2,13 +2,29 @@
 
 import { Bell, Search, User, LogOut, Settings, ChevronDown } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export default function Topbar() {
     const { data: session } = useSession();
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [workspace, setWorkspace] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchActiveWorkspace = async () => {
+            try {
+                const res = await fetch("/api/workspaces/active");
+                if (res.ok) {
+                    const data = await res.json();
+                    setWorkspace(data);
+                }
+            } catch (error) {
+                console.error("Failed to load workspace in topbar", error);
+            }
+        };
+        fetchActiveWorkspace();
+    }, []);
 
     const handleLogout = () => {
         signOut({ callbackUrl: "/login" });
@@ -34,7 +50,7 @@ export default function Topbar() {
                 <div className="flex items-center gap-3 pl-4 border-l-2 border-black/5 relative">
                     <div className="text-right hidden sm:block">
                         <div className="text-sm font-bold">{session?.user?.name || "User"}</div>
-                        <div className="text-xs text-muted-foreground">Pro Plan</div>
+                        <div className="text-xs text-muted-foreground uppercase tracking-widest">{workspace?.plan || "Free"} Plan</div>
                     </div>
                     <button
                         onClick={() => setShowUserMenu(!showUserMenu)}

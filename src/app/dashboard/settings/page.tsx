@@ -25,22 +25,12 @@ export default function SettingsPage() {
 
     const fetchWorkspace = async () => {
         try {
-            // Fetch multiple workspaces to find the active one (or just the first for now)
-            const res = await fetch("/api/workspaces");
+            const res = await fetch("/api/workspaces/active");
 
             if (!res.ok) throw new Error("Failed to load");
 
             const data = await res.json();
-            if (data.length > 0) {
-                // Try to match active workspace from cookie
-                const activeId = document.cookie
-                    .split("; ")
-                    .find((row) => row.startsWith("active_workspace_id="))
-                    ?.split("=")[1];
-
-                const active = data.find((w: any) => w.id === activeId) || data[0];
-                setWorkspace(active);
-            }
+            setWorkspace(data);
         } catch (error) {
             toast.error("Failed to load settings");
         } finally {
