@@ -3,10 +3,11 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Loader2, CheckCircle2, AlertCircle, Users } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Building2, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 function InviteContent() {
     const { data: session, status } = useSession();
@@ -67,55 +68,58 @@ function InviteContent() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-md w-full hi-card p-8 text-center"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-zinc-200 p-8 text-center relative z-10"
             >
-                <div className="w-16 h-16 bg-pastel-green hi-border rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Users size={32} />
+                <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-zinc-50">
+                    {loading ? (
+                        <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
+                    ) : joined ? (
+                        <CheckCircle2 className="w-8 h-8 text-green-600" />
+                    ) : error ? (
+                        <AlertCircle className="w-8 h-8 text-red-500" />
+                    ) : (
+                        <UserPlus className="w-8 h-8 text-zinc-600" />
+                    )}
                 </div>
 
-                <h1 className="text-3xl font-serif font-bold mb-4">Workspace Invitation</h1>
+                <h1 className="text-2xl font-bold mb-2 text-zinc-900">
+                    {joined ? "Welcome Aboard!" : "Workspace Invite"}
+                </h1>
 
-                {loading ? (
+                <p className="text-zinc-500 mb-8 max-w-sm mx-auto">
+                    {loading && "Verifying your invitation and joining the team..."}
+                    {joined && "You've successfully joined the workspace. Redirecting you to the dashboard..."}
+                    {error && "We couldn't verify this invitation link. Please check with your administrator."}
+                </p>
+
+                {error && (
                     <div className="space-y-4">
-                        <Loader2 className="w-10 h-10 animate-spin text-pastel-green mx-auto" />
-                        <p className="text-muted-foreground italic">Joining the workspace...</p>
-                    </div>
-                ) : error ? (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-center gap-2 text-destructive font-bold">
-                            <AlertCircle size={20} />
-                            <span>{error}</span>
+                        <div className="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-600">
+                            {error}
                         </div>
-                        <p className="text-muted-foreground text-sm">
-                            Please ask your team owner for a new invitation link.
-                        </p>
                         <Link href="/dashboard">
-                            <button className="w-full hi-pill-btn h-12">
-                                Go to Dashboard
-                            </button>
+                            <Button className="w-full bg-zinc-900 text-white hover:bg-zinc-800">
+                                Return to Dashboard
+                            </Button>
                         </Link>
                     </div>
-                ) : joined ? (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
-                            <CheckCircle2 size={24} />
-                            <span className="text-xl">Welcome to the team!</span>
-                        </div>
-                        <p className="text-muted-foreground">
-                            You have successfully joined the workspace. Redirecting you to your dashboard...
-                        </p>
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="w-full hi-pill-btn h-12"
-                        >
-                            Go to Dashboard Now
-                        </button>
-                    </div>
-                ) : null}
+                )}
+
+                {joined && (
+                    <Button
+                        onClick={() => router.push("/dashboard")}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20"
+                    >
+                        Go to Dashboard Now
+                    </Button>
+                )}
             </motion.div>
         </div>
     );
@@ -124,11 +128,8 @@ function InviteContent() {
 export default function InvitePage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-                <div className="max-w-md w-full hi-card p-8 text-center flex flex-col items-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-pastel-green mb-4" />
-                    <p className="text-muted-foreground italic">Loading invitation...</p>
-                </div>
+            <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
+                <Loader2 className="w-10 h-10 animate-spin text-zinc-300" />
             </div>
         }>
             <InviteContent />

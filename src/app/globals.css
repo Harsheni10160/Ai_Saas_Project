@@ -1,58 +1,53 @@
 @import "tailwindcss";
 
 @theme {
-  /* HiHobbes Color Palette */
-  --color-background: #FDFCF6;
-  --color-foreground: #000000;
+  /* Enterprise Color Palette */
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
 
-  --color-card: #FFFFFF;
-  --color-card-foreground: #000000;
+  --color-card: #ffffff;
+  --color-card-foreground: #09090b;
 
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #000000;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #09090b;
 
-  --color-primary: #000000;
-  --color-primary-foreground: #FDFCF6;
+  --color-primary: #18181b;
+  --color-primary-foreground: #fafafa;
 
-  --color-secondary: #F3F2EE;
-  --color-secondary-foreground: #000000;
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
 
-  --color-muted: #F3F2EE;
-  --color-muted-foreground: #666666;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
 
-  --color-accent: #D9F19E;
-  /* Playful Success Green */
-  --color-accent-foreground: #000000;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
 
-  --color-destructive: #FF4D4D;
-  --color-destructive-foreground: #FFFFFF;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
 
-  --color-border: #000000;
-  --color-input: #000000;
-  --color-ring: #000000;
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #18181b;
 
-  /* Custom Pastel Accents */
-  --color-pastel-green: #D9F19E;
-  --color-pastel-blue: #BDDDFC;
-  --color-pastel-yellow: #FEEBA7;
-  --color-pastel-purple: #E4D7FB;
-
-  /* HiHobbes Rounded Corners */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
 
   /* Fonts */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "General Sans", "Satoshi", ui-serif, Georgia, serif;
+  --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-serif: "General Sans", "Satoshi", ui-serif, Georgia, serif;
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-family-sans);
   }
 
   h1,
@@ -61,7 +56,9 @@
   h4,
   h5,
   h6 {
-    @apply font-serif font-bold tracking-tight;
+    font-family: var(--font-family-serif);
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
   /* Specific HiHobbes Border Look */
@@ -71,24 +68,19 @@
 
   .hi-card {
     border: 2px solid black;
-    border-radius: 1.5rem;
-    background-color: white;
+    border-radius: var(--radius-2xl);
+    background-color: var(--color-card);
     box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
   }
 
   .hi-pill-btn {
     border: 2px solid black;
     border-radius: 9999px;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding: 0.5rem 1.5rem;
     background-color: var(--color-primary);
     color: var(--color-primary-foreground);
     font-weight: 500;
-    transition-property: transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .hi-pill-btn:hover {

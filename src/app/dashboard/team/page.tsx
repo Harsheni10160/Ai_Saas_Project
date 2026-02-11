@@ -5,19 +5,43 @@ import { useSession } from "next-auth/react";
 import {
     Users,
     UserPlus,
-    Mail,
-    Shield,
     MoreVertical,
     Loader2,
     Crown,
     Trash2,
     Copy,
     Check,
-    AlertTriangle
+    AlertTriangle,
+    Mail,
+    Shield
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function TeamPage() {
     const { data: session } = useSession();
@@ -41,21 +65,15 @@ export default function TeamPage() {
     const fetchTeamData = async () => {
         try {
             setLoading(true);
-
-            // Get active workspace
             const wsRes = await fetch("/api/workspaces/active");
-            if (!wsRes.ok) return;
-
+            if (!wsRes.ok) throw new Error("No active workspace");
             const activeWs = await wsRes.json();
             setWorkspace(activeWs);
 
-            // Get members
             const membersRes = await fetch(`/api/team/members?workspaceId=${activeWs.id}`);
             if (membersRes.ok) {
                 const membersData = await membersRes.json();
                 setMembers(membersData);
-
-                // Find current user's role
                 const currentMember = membersData.find((m: any) => m.userId === session?.user?.id);
                 setCurrentUserRole(currentMember?.role || null);
             }
@@ -73,23 +91,9 @@ export default function TeamPage() {
             return;
         }
 
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(inviteEmail)) {
-            toast.error("Please enter a valid email address");
-            return;
-        }
-
         try {
             setInviting(true);
-            const inviteUrl = "/api/team/invite";
-            console.log("Inviting to:", inviteUrl, {
-                workspaceId: workspace.id,
-                email: inviteEmail.toLowerCase(),
-                role: inviteRole,
-            });
-
-            const res = await fetch(inviteUrl, {
+            const res = await fetch("/api/team/invite", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -100,20 +104,14 @@ export default function TeamPage() {
             });
 
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to invite member");
 
-            if (!res.ok) {
-                toast.error(data.error || data.message || "Failed to invite member");
-                return;
-            }
-
-            toast.success(data.message || "Member invited successfully!");
+            toast.success("Member invited successfully!");
             setInviteEmail("");
-            setInviteRole("MEMBER");
             setShowInviteModal(false);
-            fetchTeamData(); // Refresh members list
-        } catch (error) {
-            console.error("Invite error:", error);
-            toast.error("Failed to invite member");
+            fetchTeamData();
+        } catch (error: any) {
+            toast.error(error.message);
         } finally {
             setInviting(false);
         }
@@ -121,25 +119,14 @@ export default function TeamPage() {
 
     const handleRemoveMember = async () => {
         if (!memberToRemove) return;
-
         try {
             setRemoving(true);
-            const res = await fetch(`/api/team/members/${memberToRemove.id}`, {
-                method: "DELETE",
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                toast.error(data.error || "Failed to remove member");
-                return;
-            }
-
+            await fetch(`/api/team/members/${memberToRemove.id}`, { method: "DELETE" });
             toast.success("Member removed successfully");
             setShowRemoveModal(false);
             setMemberToRemove(null);
-            fetchTeamData(); // Refresh members list
+            fetchTeamData();
         } catch (error) {
-            console.error("Remove error:", error);
             toast.error("Failed to remove member");
         } finally {
             setRemoving(false);
@@ -156,288 +143,163 @@ export default function TeamPage() {
 
     const isOwner = currentUserRole === "OWNER";
 
-    if (loading) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-pastel-green" />
-            </div>
-        );
-    }
+    if (loading) return (
+        <div className="flex justify-center items-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
+        </div>
+    );
 
     return (
-        <div className="space-y-6 pb-20">
-            {/* Header */}
-            <header className="flex items-end justify-between">
+        <div className="max-w-4xl mx-auto space-y-8">
+            <div className="flex justify-between items-center">
                 <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <Users className="w-4 h-4 text-pastel-blue" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Team</span>
-                    </div>
-                    <motion.h1
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-4xl font-serif font-bold tracking-tight"
-                    >
-                        Team Members
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-muted-foreground mt-2"
-                    >
-                        Manage your workspace team and permissions ({members.length} members)
-                    </motion.p>
+                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Team Members</h1>
+                    <p className="text-zinc-500 mt-1">Manage access and roles for your workspace.</p>
                 </div>
                 {isOwner && (
-                    <button
-                        onClick={() => setShowInviteModal(true)}
-                        className="px-6 py-3 bg-black text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                    >
-                        <UserPlus size={20} />
+                    <Button onClick={() => setShowInviteModal(true)} className="bg-zinc-900 text-white hover:bg-zinc-800">
+                        <UserPlus className="w-4 h-4 mr-2" />
                         Invite Member
-                    </button>
+                    </Button>
                 )}
-            </header>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="hi-card p-6"
-                >
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-pastel-green hi-border rounded-xl">
-                            <Users size={20} />
-                        </div>
-                        <span className="text-sm font-bold text-muted-foreground">Total Members</span>
-                    </div>
-                    <p className="text-3xl font-bold">{members.length}</p>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="hi-card p-6"
-                >
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-pastel-yellow hi-border rounded-xl">
-                            <Crown size={20} />
-                        </div>
-                        <span className="text-sm font-bold text-muted-foreground">Owners</span>
-                    </div>
-                    <p className="text-3xl font-bold">
-                        {members.filter(m => m.role === 'OWNER').length}
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="hi-card p-6"
-                >
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-pastel-blue hi-border rounded-xl">
-                            <Shield size={20} />
-                        </div>
-                        <span className="text-sm font-bold text-muted-foreground">Members</span>
-                    </div>
-                    <p className="text-3xl font-bold">
-                        {members.filter(m => m.role === 'MEMBER').length}
-                    </p>
-                </motion.div>
             </div>
 
-            {/* Members List */}
-            <div className="hi-card p-6">
-                <h2 className="text-xl font-bold mb-6">Team Members</h2>
-                <div className="space-y-3">
-                    {members.map((member, idx) => (
-                        <motion.div
-                            key={member.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="flex items-center justify-between p-4 rounded-2xl border-2 border-black/5 hover:border-black/10 transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-pastel-green hi-border flex items-center justify-center font-bold text-lg">
-                                    {member.user?.name?.[0]?.toUpperCase() || member.user?.email?.[0]?.toUpperCase() || "?"}
-                                </div>
-                                <div>
-                                    <p className="font-bold">{member.user?.name || "Unknown"}</p>
-                                    <p className="text-sm text-muted-foreground">{member.user?.email}</p>
+            <div className="border border-zinc-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                <div className="grid grid-cols-12 gap-4 p-4 bg-zinc-50/50 border-b border-zinc-200 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    <div className="col-span-5">User</div>
+                    <div className="col-span-4">Role</div>
+                    <div className="col-span-2">Joined</div>
+                    <div className="col-span-1 text-right">Actions</div>
+                </div>
+
+                <div className="divide-y divide-zinc-100">
+                    {members.map((member) => (
+                        <div key={member.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-zinc-50 transition-colors group">
+                            <div className="col-span-5 flex items-center gap-3">
+                                <Avatar className="h-9 w-9 border border-zinc-200">
+                                    <AvatarFallback className="bg-zinc-100 text-zinc-600 font-medium text-xs">
+                                        {member.user?.name?.[0]?.toUpperCase() || member.user?.email?.[0]?.toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-zinc-900 truncate">{member.user?.name || "Unknown"}</p>
+                                    <p className="text-xs text-zinc-500 truncate">{member.user?.email}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 border-black ${member.role === 'OWNER' ? 'bg-pastel-yellow' : 'bg-pastel-blue/20'
-                                    }`}>
-                                    {member.role === 'OWNER' ? (
-                                        <span className="flex items-center gap-1">
-                                            <Crown size={12} /> Owner
-                                        </span>
-                                    ) : 'Member'}
-                                </span>
+                            <div className="col-span-4">
+                                <Badge variant="secondary" className={`
+                                    ${member.role === 'OWNER' ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}
+                                    border-transparent font-medium
+                                `}>
+                                    {member.role === 'OWNER' ? <Crown className="w-3 h-3 mr-1 inline" /> : null}
+                                    {member.role.charAt(0) + member.role.slice(1).toLowerCase()}
+                                </Badge>
+                            </div>
+                            <div className="col-span-2 text-sm text-zinc-500">
+                                {new Date(member.joinedAt || Date.now()).toLocaleDateString()}
+                            </div>
+                            <div className="col-span-1 text-right">
                                 {isOwner && member.role !== 'OWNER' && (
-                                    <button
-                                        onClick={() => {
-                                            setMemberToRemove(member);
-                                            setShowRemoveModal(true);
-                                        }}
-                                        className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-600">
+                                                <MoreVertical className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                                className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                                                onClick={() => {
+                                                    setMemberToRemove(member);
+                                                    setShowRemoveModal(true);
+                                                }}
+                                            >
+                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                Remove Member
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </div>
 
             {/* Invite Modal */}
-            <AnimatePresence>
-                {showInviteModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl border-2 border-black p-8 max-w-md w-full"
-                        >
-                            <h2 className="text-2xl font-serif font-bold mb-4">Invite Team Member</h2>
-                            <p className="text-muted-foreground mb-6">
-                                Add a team member to your workspace. They must have an account first.
-                            </p>
+            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Invite Team Member</DialogTitle>
+                        <DialogDescription>
+                            Send an invitation email to add a new member to your workspace.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Email Address</label>
+                            <Input
+                                placeholder="colleague@company.com"
+                                value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Role</label>
+                            <Select value={inviteRole} onValueChange={setInviteRole}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="MEMBER">Member</SelectItem>
+                                    <SelectItem value="OWNER">Owner</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            <div className="space-y-4 mb-6">
-                                <div>
-                                    <label className="block text-sm font-bold mb-2">Email Address</label>
-                                    <input
-                                        type="email"
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                        placeholder="colleague@company.com"
-                                        className="w-full px-4 py-3 border-2 border-black rounded-2xl focus:outline-none focus:ring-2 focus:ring-pastel-green"
-                                        disabled={inviting}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold mb-2">Role</label>
-                                    <select
-                                        value={inviteRole}
-                                        onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-black rounded-2xl focus:outline-none focus:ring-2 focus:ring-pastel-green"
-                                        disabled={inviting}
-                                    >
-                                        <option value="MEMBER">Member</option>
-                                        <option value="OWNER">Owner</option>
-                                    </select>
-                                </div>
-
-                                <div className="pt-4 border-t border-black/10">
-                                    <p className="text-sm font-bold mb-2">Or share invite link</p>
-                                    <button
-                                        onClick={copyInviteLink}
-                                        className="w-full px-4 py-3 border-2 border-black rounded-2xl font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
-                                        disabled={inviting}
-                                    >
-                                        {copied ? <Check size={18} /> : <Copy size={18} />}
-                                        {copied ? 'Copied!' : 'Copy Invite Link'}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowInviteModal(false);
-                                        setInviteEmail("");
-                                        setInviteRole("MEMBER");
-                                    }}
-                                    className="flex-1 px-6 py-3 border-2 border-black rounded-2xl font-bold hover:bg-secondary transition-colors"
-                                    disabled={inviting}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleInvite}
-                                    disabled={inviting}
-                                    className="flex-1 px-6 py-3 bg-black text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {inviting ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" />
-                                            Inviting...
-                                        </>
-                                    ) : (
-                                        'Send Invite'
-                                    )}
-                                </button>
-                            </div>
-                        </motion.div>
+                        <div className="pt-2">
+                            <Button variant="outline" className="w-full" onClick={copyInviteLink}>
+                                {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                                {copied ? 'Link Copied' : 'Copy Invite Link'}
+                            </Button>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setShowInviteModal(false)}>Cancel</Button>
+                        <Button onClick={handleInvite} disabled={inviting} className="bg-zinc-900 text-white">
+                            {inviting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Send Invite
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-            {/* Remove Member Confirmation Modal */}
-            <AnimatePresence>
-                {showRemoveModal && memberToRemove && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl border-2 border-black p-8 max-w-md w-full"
+            {/* Remove Modal */}
+            <Dialog open={showRemoveModal} onOpenChange={setShowRemoveModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5" />
+                            Remove Member
+                        </DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to remove <strong>{memberToRemove?.user?.name || memberToRemove?.user?.email}</strong>? They will lose access immediately.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setShowRemoveModal(false)}>Cancel</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleRemoveMember}
+                            disabled={removing}
+                            className="bg-red-600 hover:bg-red-700"
                         >
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-destructive/10 rounded-2xl">
-                                    <AlertTriangle className="w-6 h-6 text-destructive" />
-                                </div>
-                                <h2 className="text-2xl font-serif font-bold">Remove Member</h2>
-                            </div>
-
-                            <p className="text-muted-foreground mb-6">
-                                Are you sure you want to remove <strong>{memberToRemove.user?.name || memberToRemove.user?.email}</strong> from this workspace? They will lose access immediately.
-                            </p>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowRemoveModal(false);
-                                        setMemberToRemove(null);
-                                    }}
-                                    className="flex-1 px-6 py-3 border-2 border-black rounded-2xl font-bold hover:bg-secondary transition-colors"
-                                    disabled={removing}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleRemoveMember}
-                                    disabled={removing}
-                                    className="flex-1 px-6 py-3 bg-destructive text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {removing ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" />
-                                            Removing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 size={18} />
-                                            Remove
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                            {removing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Remove
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

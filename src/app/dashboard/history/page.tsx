@@ -18,6 +18,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 export default function ChatHistoryPage() {
     const { data: session } = useSession();
@@ -93,98 +94,80 @@ export default function ChatHistoryPage() {
 
     if (loading && page === 0) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-pastel-green" />
+            <div className="h-[60vh] flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-zinc-900 mb-4" />
+                <p className="text-zinc-500 font-medium">Loading chat archives...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 pb-20">
+        <div className="space-y-8 max-w-7xl mx-auto pb-20">
             {/* Header */}
-            <header>
-                <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare className="w-4 h-4 text-pastel-blue" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Conversations</span>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Chat History</h1>
+                    <p className="text-zinc-500 mt-1">Review all past interactions with your AI agent.</p>
                 </div>
-                <motion.h1
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="text-4xl font-serif font-bold tracking-tight"
-                >
-                    Chat History
-                </motion.h1>
-                <motion.p
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-muted-foreground mt-2"
-                >
-                    View and manage all customer conversations ({total} total)
-                </motion.p>
-            </header>
-
-            {/* Search and Filters */}
-            <div className="flex gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search conversations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 border-2 border-black rounded-2xl focus:outline-none focus:ring-2 focus:ring-pastel-green"
-                    />
+                <div className="px-3 py-1 bg-zinc-100 rounded-full text-[10px] font-bold text-zinc-500 uppercase tracking-widest border border-zinc-200">
+                    {total} Conversations
                 </div>
             </div>
 
-            {/* Conversations List */}
+            {/* Search */}
+            <div className="relative group max-w-md">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" size={18} />
+                <input
+                    type="text"
+                    placeholder="Search messages or sessions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-11 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
+                />
+            </div>
+
+            {/* Content Grid */}
             {filteredConversations.length === 0 ? (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="hi-card p-12 text-center"
-                >
-                    <div className="inline-block p-6 rounded-3xl bg-secondary mb-6">
-                        <MessageSquare size={48} className="text-muted-foreground" />
+                <div className="border border-zinc-200 rounded-2xl p-12 text-center bg-zinc-50/50">
+                    <div className="inline-block p-4 rounded-full bg-white border border-zinc-100 mb-6 shadow-sm">
+                        <MessageSquare size={32} className="text-zinc-300" />
                     </div>
-                    <h3 className="text-2xl font-serif font-bold mb-3">No conversations yet</h3>
-                    <p className="text-muted-foreground mb-6">
-                        Chat history will appear here once customers start using your AI agent.
+                    <h3 className="text-lg font-bold text-zinc-900 mb-1">No history found</h3>
+                    <p className="text-zinc-500 text-sm max-w-sm mx-auto">
+                        Conversations will be archived here once your agent starts interacting with users.
                     </p>
-                </motion.div>
+                </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Conversation List */}
-                    <div className="space-y-3">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* List Section */}
+                    <div className="lg:col-span-4 space-y-3">
                         <AnimatePresence mode="popLayout">
                             {filteredConversations.map((conv, idx) => (
                                 <motion.div
                                     key={conv.id}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ delay: idx * 0.05 }}
                                     onClick={() => fetchConversationDetails(conv.id)}
-                                    className={`hi-card p-4 cursor-pointer transition-all hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 ${selectedConversation?.id === conv.id ? 'border-pastel-green bg-pastel-green/10' : ''
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer group ${selectedConversation?.id === conv.id
+                                        ? 'border-indigo-600 bg-indigo-50/30'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'
                                         }`}
                                 >
-                                    <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
-                                            <User size={16} className="text-muted-foreground" />
-                                            <span className="font-bold text-sm">Session {conv.sessionId.slice(0, 8)}</span>
+                                            <div className={`w-2 h-2 rounded-full ${selectedConversation?.id === conv.id ? 'bg-indigo-600' : 'bg-zinc-300'}`} />
+                                            <span className="font-bold text-xs text-zinc-900 uppercase">#{conv.sessionId.slice(0, 6)}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <Clock size={14} />
-                                            {format(new Date(conv.createdAt), 'MMM d, h:mm a')}
-                                        </div>
+                                        <span className="text-[10px] text-zinc-400 font-medium">
+                                            {format(new Date(conv.createdAt), 'MMM d')}
+                                        </span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                        {conv.firstMessage?.content || "No messages"}
+                                    <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed mb-3">
+                                        {conv.firstMessage?.content || "No interactions recorded"}
                                     </p>
-                                    <div className="flex items-center justify-between pt-3 border-t border-black/5">
-                                        <span className="text-xs font-bold">{conv.messageCount} messages</span>
-                                        <ChevronRight size={16} />
+                                    <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+                                        <span>{conv.messageCount} exchanges</span>
+                                        <ChevronRight size={12} className={selectedConversation?.id === conv.id ? 'text-indigo-600' : 'text-zinc-300'} />
                                     </div>
                                 </motion.div>
                             ))}
@@ -192,78 +175,92 @@ export default function ChatHistoryPage() {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 pt-4">
-                                <button
+                            <div className="flex items-center justify-between gap-2 pt-6">
+                                <Button
                                     onClick={() => setPage(p => Math.max(0, p - 1))}
                                     disabled={page === 0}
-                                    className="px-4 py-2 border-2 border-black rounded-xl font-bold hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs font-bold uppercase tracking-widest text-zinc-500"
                                 >
-                                    <ChevronLeft size={16} />
-                                    Previous
-                                </button>
-                                <span className="px-4 py-2 font-bold">
-                                    Page {page + 1} of {totalPages}
+                                    <ChevronLeft size={14} className="mr-1" /> Prev
+                                </Button>
+                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                                    {page + 1} / {totalPages}
                                 </span>
-                                <button
+                                <Button
                                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                     disabled={page >= totalPages - 1}
-                                    className="px-4 py-2 border-2 border-black rounded-xl font-bold hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs font-bold uppercase tracking-widest text-zinc-500"
                                 >
-                                    Next
-                                    <ChevronRight size={16} />
-                                </button>
+                                    Next <ChevronRight size={14} className="ml-1" />
+                                </Button>
                             </div>
                         )}
                     </div>
 
-                    {/* Conversation Detail */}
-                    <div className="hi-card p-6 sticky top-6 h-fit max-h-[calc(100vh-8rem)] flex flex-col">
+                    {/* Detail Section */}
+                    <div className="lg:col-span-8 border border-zinc-200 rounded-2xl bg-white shadow-sm overflow-hidden flex flex-col h-[700px]">
                         {loadingConversation ? (
-                            <div className="flex items-center justify-center py-12">
-                                <Loader2 className="w-8 h-8 animate-spin text-pastel-green" />
+                            <div className="flex-1 flex flex-col items-center justify-center text-zinc-400">
+                                <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                                <p className="text-xs font-semibold uppercase tracking-widest">Retrieving Logs...</p>
                             </div>
                         ) : selectedConversation ? (
                             <>
-                                <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-black/5">
+                                <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/30">
                                     <div>
-                                        <h3 className="text-xl font-bold">Conversation Details</h3>
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <h3 className="font-bold text-zinc-900">Session Details</h3>
+                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">
                                             {format(new Date(selectedConversation.createdAt), 'MMMM d, yyyy • h:mm a')}
                                         </p>
                                     </div>
+                                    <div className="flex gap-2">
+                                        <div className="px-2 py-1 rounded bg-indigo-50 text-[10px] font-bold text-indigo-600 uppercase">Archive</div>
+                                    </div>
                                 </div>
-                                <div className="space-y-4 overflow-y-auto flex-1">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-50/20">
                                     {selectedConversation.messages?.map((msg: any, idx: number) => (
                                         <motion.div
                                             key={msg.id}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className={`p-4 rounded-2xl border-2 border-black ${msg.role === 'user' ? 'bg-pastel-blue' : 'bg-pastel-green/20'
-                                                }`}
+                                            className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-zinc-900' : 'bg-indigo-600'
+                                                }`}>
                                                 {msg.role === 'user' ? (
-                                                    <User size={14} />
+                                                    <User size={14} className="text-white" />
                                                 ) : (
-                                                    <Bot size={14} />
+                                                    <Bot size={14} className="text-white" />
                                                 )}
-                                                <span className="text-xs font-bold uppercase tracking-wide">
-                                                    {msg.role}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground ml-auto">
+                                            </div>
+                                            <div className={`max-w-[80%] space-y-1 ${msg.role === 'user' ? 'text-right' : ''}`}>
+                                                <div className={`p-4 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
+                                                    ? 'bg-zinc-900 text-white rounded-tr-none'
+                                                    : 'bg-white border border-zinc-200 text-zinc-700 rounded-tl-none shadow-sm'
+                                                    }`}>
+                                                    {msg.content}
+                                                </div>
+                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
                                                     {format(new Date(msg.createdAt), 'h:mm a')}
                                                 </span>
                                             </div>
-                                            <p className="text-sm leading-relaxed">{msg.content}</p>
                                         </motion.div>
                                     ))}
                                 </div>
                             </>
                         ) : (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <MessageSquare size={48} className="mx-auto mb-4 opacity-20" />
-                                <p className="font-bold">Select a conversation to view details</p>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
+                                <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mb-4 border border-zinc-100">
+                                    <MessageSquare size={24} className="text-zinc-300" />
+                                </div>
+                                <h3 className="text-base font-bold text-zinc-900">Transcript Preview</h3>
+                                <p className="text-sm text-zinc-500 max-w-xs mt-1">
+                                    Select a session from the list to view the full conversation transcript.
+                                </p>
                             </div>
                         )}
                     </div>

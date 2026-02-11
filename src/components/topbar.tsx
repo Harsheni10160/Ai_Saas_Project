@@ -1,10 +1,11 @@
 "use client";
 
-import { Bell, Search, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { Bell, Search, ChevronDown, HelpCircle } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Topbar() {
     const { data: session } = useSession();
@@ -26,77 +27,89 @@ export default function Topbar() {
         fetchActiveWorkspace();
     }, []);
 
-    const handleLogout = () => {
-        signOut({ callbackUrl: "/login" });
-    };
+    const userInitials = session?.user?.name
+        ? session.user.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+        : "U";
 
     return (
-        <header className="h-20 flex items-center justify-between px-8 bg-background border-b-2 border-black">
-            <div className="relative w-96 max-w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+        <header className="h-16 flex items-center justify-between px-4 lg:px-8 bg-white border-b border-zinc-200 sticky top-0 z-40">
+            {/* Search Bar - Hidden on Mobile */}
+            <div className="hidden md:flex items-center relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
                 <input
                     type="text"
-                    placeholder="Search queries, docs, agents..."
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary border border-transparent focus:border-black focus:bg-background outline-none transition-all"
+                    placeholder="Search docs, conversations..."
+                    className="w-full pl-9 pr-4 py-1.5 rounded-full bg-zinc-50 border border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm placeholder:text-zinc-400"
                 />
             </div>
 
-            <div className="flex items-center gap-4">
-                <button className="w-10 h-10 rounded-xl border flex items-center justify-center hover:bg-secondary transition-colors relative">
-                    <Bell size={20} />
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-pastel-green rounded-full border" />
+            {/* Mobile Spacer */}
+            <div className="md:hidden flex-1" />
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2 sm:gap-4">
+                <button className="text-zinc-500 hover:text-zinc-900 transition-colors p-2 hover:bg-zinc-100 rounded-full">
+                    <HelpCircle size={18} />
                 </button>
 
-                <div className="flex items-center gap-3 pl-4 border-l-2 border-black/5 relative">
-                    <div className="text-right hidden sm:block">
-                        <div className="text-sm font-bold">{session?.user?.name || "User"}</div>
-                        <div className="text-xs text-muted-foreground uppercase tracking-widest">{workspace?.plan || "Free"} Plan</div>
-                    </div>
+                <button className="relative text-zinc-500 hover:text-zinc-900 transition-colors p-2 hover:bg-zinc-100 rounded-full">
+                    <Bell size={18} />
+                    <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-indigo-500 rounded-full ring-2 ring-white" />
+                </button>
+
+                <div className="h-6 w-px bg-zinc-200 hidden sm:block" />
+
+                <div className="relative">
                     <button
                         onClick={() => setShowUserMenu(!showUserMenu)}
-                        className="w-10 h-10 rounded-full bg-pastel-yellow border flex items-center justify-center overflow-hidden hover:scale-105 transition-transform"
+                        className="flex items-center gap-2 p-1 pl-2 rounded-full hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all"
                     >
-                        <User size={20} />
+                        <div className="text-right hidden sm:block mr-1">
+                            <div className="text-xs font-semibold text-zinc-900 leading-none">{session?.user?.name || "User"}</div>
+                            <div className="text-[10px] text-zinc-500 leading-none mt-1">{workspace?.plan || "Free"} Plan</div>
+                        </div>
+                        <Avatar className="h-8 w-8 border border-zinc-200">
+                            <AvatarImage src={session?.user?.image || ""} />
+                            <AvatarFallback className="bg-indigo-50 text-indigo-600 text-xs font-bold">
+                                {userInitials}
+                            </AvatarFallback>
+                        </Avatar>
+                        <ChevronDown size={14} className="text-zinc-400 mr-1" />
                     </button>
 
-                    {/* User Menu Dropdown */}
+                    {/* Dropdown Menu */}
                     <AnimatePresence>
                         {showUserMenu && (
                             <>
-                                {/* Backdrop */}
                                 <div
                                     className="fixed inset-0 z-40"
                                     onClick={() => setShowUserMenu(false)}
                                 />
-
-                                {/* Dropdown Menu */}
                                 <motion.div
-                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute right-0 top-14 w-56 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50"
+                                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                    transition={{ duration: 0.1 }}
+                                    className="absolute right-0 top-full mt-2 w-56 bg-white border border-zinc-200 rounded-xl shadow-xl shadow-zinc-900/5 z-50 py-1"
                                 >
-                                    <div className="p-4 border-b-2 border-black bg-secondary/20">
-                                        <p className="font-bold text-sm">{session?.user?.name || "User"}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
+                                    <div className="px-3 py-2 border-b border-zinc-100 sm:hidden">
+                                        <p className="font-semibold text-sm">{session?.user?.name}</p>
+                                        <p className="text-xs text-zinc-500 truncate">{session?.user?.email}</p>
                                     </div>
 
-                                    <div className="p-2">
+                                    <div className="p-1">
                                         <Link
                                             href="/dashboard/settings"
                                             onClick={() => setShowUserMenu(false)}
-                                            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-secondary transition-colors font-medium text-sm"
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
                                         >
-                                            <Settings size={16} />
                                             Settings
                                         </Link>
                                         <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors font-medium text-sm"
+                                            onClick={() => signOut({ callbackUrl: "/login" })}
+                                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
                                         >
-                                            <LogOut size={16} />
-                                            Logout
+                                            Log Out
                                         </button>
                                     </div>
                                 </motion.div>

@@ -61,6 +61,7 @@ model Workspace {
   stripeCurrentPeriodEnd DateTime?
 
   widgetPublicKey        String    @unique @default(cuid())
+  widgetEnabled          Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
