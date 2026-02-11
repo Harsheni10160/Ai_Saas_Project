@@ -1,75 +1,99 @@
 "use client";
 
-import { BarChart3, Globe, Palette, ChevronRight } from "lucide-react";
+import { BarChart3, Globe, Palette, ChevronRight, Brain, FileType, Zap, Lock, Code2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const features = [
     {
-        title: "Advanced Analytics",
-        description: "Track sentiment, identify common pain points, and monitor agent performance with real-time dashboards.",
-        icon: <BarChart3 className="w-12 h-12" />,
-        color: "bg-pastel-purple",
-        tags: ["Insights", "Real-time"],
+        title: "Semantic Understanding",
+        description: "Our RAG engine doesn't just match keywords. It understands intent and context using vector embeddings, delivering human-quality accuracy.",
+        icon: Brain,
+        className: "md:col-span-2 md:row-span-2",
+        visual: (
+            <div className="absolute right-4 bottom-4 w-1/2 h-1/2 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-xl border border-indigo-100/50 backdrop-blur-sm p-4 flex flex-col gap-2">
+                <div className="h-2 w-3/4 bg-indigo-200/50 rounded-full" />
+                <div className="h-2 w-1/2 bg-indigo-200/30 rounded-full" />
+                <div className="mt-auto flex gap-2">
+                    <div className="h-6 w-6 rounded-full bg-indigo-500/20" />
+                    <div className="h-6 w-full bg-indigo-500/10 rounded-md" />
+                </div>
+            </div>
+        )
     },
     {
-        title: "Multi-language Support",
-        description: "Support your customers in over 50+ languages automatically. No translation needed.",
-        icon: <Globe className="w-12 h-12" />,
-        color: "bg-white",
-        tags: ["Global", "Native"],
+        title: "Multi-Format Ingestion",
+        description: "PDFs, Word Docs, Notion, or plain text. We parse and structure it all automatically.",
+        icon: FileType,
+        className: "md:col-span-1 md:row-span-1",
     },
     {
-        title: "Custom Branding",
-        description: "Customize the chat widget to match your brand identity—colors, logo, and personality.",
-        icon: <Palette className="w-12 h-12" />,
-        color: "bg-pastel-green",
-        tags: ["Design", "Pro"],
+        title: "Global Reach",
+        description: "Auto-detect language and reply in the customer's native tongue. 50+ languages supported.",
+        icon: Globe,
+        className: "md:col-span-1 md:row-span-1",
+    },
+    {
+        title: "Deep Analytics",
+        description: "Track sentiment, resolution rates, and unanswered queries to improve your knowledge base.",
+        icon: BarChart3,
+        className: "md:col-span-1 md:row-span-1",
+    },
+    {
+        title: "On-Brand Design",
+        description: "Custom colors, fonts, and avatars. Make the widget feel like a native part of your product.",
+        icon: Palette,
+        className: "md:col-span-1 md:row-span-1",
+    },
+    {
+        title: "Developer API",
+        description: "Headless mode available. Build your own UI on top of our RAG infrastructure.",
+        icon: Code2,
+        className: "md:col-span-1 md:row-span-1",
     },
 ];
 
 export function Features() {
     return (
-        <section id="features" className="py-24 px-4 bg-secondary/30">
+        <section id="features" className="py-24 px-4 bg-white">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-                    <div className="max-w-xl">
-                        <h2 className="text-4xl md:text-5xl mb-4">Small Business, <br />Big Experience.</h2>
-                        <p className="text-xl text-muted-foreground">Everything you need to scale your customer success without scaling your team.</p>
-                    </div>
-                    <button className="hi-pill-btn bg-black text-white px-8 py-3 w-fit">
-                        View All Features
-                    </button>
+                <div className="mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6 text-zinc-900">
+                        Enterprise power, <br />
+                        <span className="text-zinc-400">consumer simplicity.</span>
+                    </h2>
+                    <p className="text-lg text-zinc-600 max-w-2xl">
+                        Everything you need to scale support without scaling headcount.
+                        Built for speed, accuracy, and reliability.
+                    </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-auto gap-4">
                     {features.map((feature, index) => (
                         <motion.div
                             key={index}
-                            initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
                             viewport={{ once: true }}
-                            className={`hi-card flex flex-col md:flex-row items-center gap-8 md:gap-16 p-8 md:p-12 ${feature.color}`}
+                            className={cn(
+                                "group relative overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50/50 p-8 transition-all hover:bg-zinc-50 hover:shadow-lg hover:shadow-zinc-900/5",
+                                feature.className
+                            )}
                         >
-                            <div className="flex-1 order-2 md:order-1">
-                                <div className="flex gap-2 mb-6">
-                                    {feature.tags.map((tag) => (
-                                        <span key={tag} className="px-3 py-1 rounded-full border border-black/10 text-xs font-bold uppercase tracking-wider bg-white/50">
-                                            {tag}
-                                        </span>
-                                    ))}
+                            <div className="relative z-10 flex flex-col h-full">
+                                <div className="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <feature.icon className="w-6 h-6 text-zinc-900" />
                                 </div>
-                                <h3 className="text-3xl md:text-4xl mb-6">{feature.title}</h3>
-                                <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                                <h3 className="text-xl font-bold mb-3 text-zinc-900">{feature.title}</h3>
+                                <p className="text-zinc-600 leading-relaxed max-w-sm">
                                     {feature.description}
                                 </p>
-                                <button className="flex items-center gap-2 font-bold hover:gap-3 transition-all">
-                                    Learn more about {feature.title.split(' ')[0]} <ChevronRight size={20} />
-                                </button>
                             </div>
-                            <div className="w-full md:w-1/3 aspect-square border rounded-2xl bg-white flex items-center justify-center shadow-xl order-1 md:order-2">
-                                {feature.icon}
-                            </div>
+
+                            {/* Decorative Background Elements */}
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-zinc-100 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {feature.visual}
                         </motion.div>
                     ))}
                 </div>

@@ -4,50 +4,62 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-    BarChart3,
-    MessageSquare,
-    Settings,
-    Users,
-    FileText,
     LayoutDashboard,
+    FileText,
+    MessageSquare,
+    Users,
+    Code2,
+    BarChart3,
+    Settings,
     LogOut,
-    Sparkles
+    Menu,
+    X,
+    MessageSquareText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import WorkspaceSwitcher from "./workspace-switcher";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-    { icon: FileText, label: "Documents", href: "/dashboard/documents" },
-    { icon: MessageSquare, label: "Chat History", href: "/dashboard/history" },
+    { icon: FileText, label: "Knowledge Base", href: "/dashboard/documents" },
+    { icon: MessageSquare, label: "Chat", href: "/dashboard/chat" },
+    { icon: MessageSquareText, label: "Conversations", href: "/dashboard/history" },
     { icon: Users, label: "Team", href: "/dashboard/team" },
-    { icon: Sparkles, label: "Embed Widget", href: "/dashboard/embed" },
+    { icon: Code2, label: "Integration", href: "/dashboard/embed" },
     { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
-import WorkspaceSwitcher from "./workspace-switcher";
-
 export default function Sidebar() {
     const pathname = usePathname();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const handleLogout = () => {
-        signOut({ callbackUrl: "/login" });
-    };
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
 
-    return (
-        <aside className="w-72 h-screen flex flex-col bg-background border-r-2 border-black p-6">
-            <div className="flex items-center gap-2 mb-10 px-2">
-                <div className="w-8 h-8 rounded-lg bg-pastel-green border flex items-center justify-center">
-                    <Sparkles size={18} className="fill-black" />
-                </div>
-                <span className="text-xl font-serif font-bold tracking-tight">AI Agent</span>
+    const SidebarContent = () => (
+        <div className="flex flex-col h-full bg-zinc-900 text-zinc-400">
+            {/* Logo Area */}
+            <div className="p-6">
+                <Link href="/dashboard" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+                        <span className="font-bold">V</span>
+                    </div>
+                    <span className="text-lg font-bold tracking-tight">Docxbot</span>
+                </Link>
             </div>
 
-            <div className="mb-6">
+            {/* Workspace Switcher */}
+            <div className="px-4 mb-6">
                 <WorkspaceSwitcher />
             </div>
 
-            <nav className="flex-1 space-y-2">
+            {/* Navigation */}
+            <nav className="flex-1 px-2 space-y-1 overflow-y-auto">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -55,28 +67,90 @@ export default function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-2xl font-medium transition-all border border-transparent",
+                                "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all group relative",
                                 isActive
-                                    ? "bg-pastel-green border-black translate-x-1 shadow-md"
-                                    : "hover:bg-secondary hover:border-black/5"
+                                    ? "bg-zinc-800 text-white"
+                                    : "hover:bg-zinc-800/50 hover:text-white"
                             )}
                         >
-                            <item.icon size={20} className={cn(isActive ? "text-black" : "text-muted-foreground")} />
+                            <item.icon
+                                size={18}
+                                className={cn(
+                                    "transition-colors",
+                                    isActive ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"
+                                )}
+                            />
                             {item.label}
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute left-0 top-2 bottom-2 w-1 bg-indigo-500 rounded-r-full"
+                                />
+                            )}
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="mt-auto pt-6 border-t-2 border-black/5">
+            {/* User Profile / Logout */}
+            <div className="p-4 border-t border-zinc-800">
                 <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-zinc-800/50 hover:text-white transition-colors text-zinc-500"
                 >
-                    <LogOut size={20} />
-                    Logout
+                    <LogOut size={18} />
+                    Log Out
                 </button>
             </div>
-        </aside>
+        </div>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:flex w-64 h-screen flex-col border-r border-zinc-800 shrink-0">
+                <SidebarContent />
+            </aside>
+
+            {/* Mobile Header Trigger */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 z-50">
+                <Link href="/dashboard" className="flex items-center gap-2 text-white">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+                        <span className="font-bold">V</span>
+                    </div>
+                    <span className="font-bold">Docxbot</span>
+                </Link>
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800"
+                >
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
+            {/* Mobile Menu Backdrop & Drawer */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                        />
+                        <motion.div
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                            className="fixed inset-y-0 left-0 w-64 z-50 lg:hidden bg-zinc-900 shadow-xl"
+                        >
+                            <SidebarContent />
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

@@ -69,50 +69,47 @@ export default function WorkspaceSwitcher() {
         router.refresh(); // Refresh to update server components with new cookie
     };
 
-    if (loading) return <div className="h-12 w-full bg-secondary/50 animate-pulse rounded-2xl border-2 border-black/5" />;
+    if (loading) return <div className="h-10 w-full bg-zinc-100 animate-pulse rounded-lg border border-zinc-200" />;
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
+            <DropdownMenuTrigger className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white border border-zinc-200 hover:bg-zinc-50 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                 <div className="flex items-center gap-2 truncate">
-                    <div className="w-6 h-6 rounded bg-pastel-green border border-black flex items-center justify-center flex-shrink-0">
-                        <Building2 size={14} />
+                    <div className="w-6 h-6 rounded bg-zinc-900 flex items-center justify-center flex-shrink-0">
+                        <Building2 size={12} className="text-white" />
                     </div>
-                    <span className="font-bold truncate">{activeWorkspace?.name || "Select Workspace"}</span>
+                    <span className="font-semibold text-sm text-zinc-900 truncate">{activeWorkspace?.name || "Select Workspace"}</span>
                 </div>
-                <ChevronDown size={16} className="text-black/60 flex-shrink-0" />
+                <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 p-2 rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <DropdownMenuLabel className="px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Workspaces
+            <DropdownMenuContent className="w-64 p-1 rounded-xl border border-zinc-200 shadow-lg">
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    Your Workspaces
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-black/5" />
+                <DropdownMenuSeparator className="bg-zinc-100" />
                 {workspaces.map((workspace) => (
                     <DropdownMenuItem
                         key={workspace.id}
                         onClick={() => handleSwitch(workspace)}
                         className={cn(
-                            "flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors",
-                            activeWorkspace?.id === workspace.id ? "bg-pastel-green/20" : "hover:bg-secondary"
+                            "flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors",
+                            activeWorkspace?.id === workspace.id ? "bg-zinc-50 text-zinc-900" : "hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900"
                         )}
                     >
-                        <div className="flex items-center gap-2 truncate">
-                            <span className="font-medium truncate">{workspace.name}</span>
-                        </div>
-                        {activeWorkspace?.id === workspace.id && <Check size={16} className="text-pastel-green" />}
+                        <span className="font-medium text-sm truncate">{workspace.name}</span>
+                        {activeWorkspace?.id === workspace.id && <Check size={14} className="text-indigo-600" />}
                     </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator className="bg-black/5" />
+                <DropdownMenuSeparator className="bg-zinc-100" />
                 <DropdownMenuItem
                     onSelect={(e: Event) => {
                         e.preventDefault();
-                        // Signal to parent to show creation modal
                         window.dispatchEvent(new CustomEvent('open-create-workspace-modal'));
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer hover:bg-pastel-green/10 text-pastel-green"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-indigo-600 hover:bg-indigo-50 font-semibold text-sm"
                 >
-                    <Plus size={16} />
-                    <span className="font-bold">Create Workspace</span>
+                    <Plus size={14} />
+                    <span>New Workspace</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

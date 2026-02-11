@@ -3,17 +3,19 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Upload, FileText, Loader2, Trash2, CheckCircle, XCircle, Sparkles, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Upload, FileText, Loader2, Trash2, CheckCircle2, AlertCircle, File, Search } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DocumentsPage() {
     const [documents, setDocuments] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
     const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
-    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
-    const [deleting, setDeleting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         fetchActiveWorkspace();
@@ -22,13 +24,7 @@ export default function DocumentsPage() {
     const fetchActiveWorkspace = async () => {
         try {
             const res = await fetch("/api/workspaces/active");
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: "Failed to load active workspace" }));
-                toast.error(errorData.error || "Failed to fetch active workspace");
-                return;
-            }
-
+            if (!res.ok) throw new Error("Failed to load active workspace");
             const data = await res.json();
             if (data.id) {
                 setActiveWorkspaceId(data.id);
@@ -36,23 +32,21 @@ export default function DocumentsPage() {
             }
         } catch (error) {
             toast.error("Failed to fetch active workspace");
+            setIsLoading(false);
         }
     };
 
     const fetchDocuments = async (workspaceId: string) => {
         try {
             const res = await fetch(`/api/documents?workspaceId=${workspaceId}`);
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: "Failed to load documents" }));
-                console.error("Failed to fetch documents:", errorData.error);
-                return;
+            if (res.ok) {
+                const data = await res.json();
+                setDocuments(data);
             }
-
-            const data = await res.json();
-            setDocuments(data);
         } catch (error) {
             console.error("Failed to fetch documents");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -60,7 +54,7 @@ export default function DocumentsPage() {
         const file = acceptedFiles[0];
         if (!file || !activeWorkspaceId) return;
 
-        // Optimistic Update: Add temp document immediately
+        // Optimistic UI
         const tempId = `temp-${Date.now()}`;
         const tempDoc = {
             id: tempId,
@@ -84,18 +78,14 @@ export default function DocumentsPage() {
                 body: formData,
             });
 
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || `Upload failed with status ${res.status}`);
-            }
+            if (!res.ok) throw new Error("Upload failed");
 
             const doc = await res.json();
-
-            // Replace temp doc with real doc
             setDocuments((prev) => prev.map(d => d.id === tempId ? doc : d));
-            toast.success("Document uploaded successfully!");
+            toast.success("Document uploaded successfully");
+            queryClient.invalidateQueries({ queryKey: ["dashboardSummary"] });
 
-            // Refresh documents to get processing status updates
+            // Poll for status
             const interval = setInterval(async () => {
                 const checkRes = await fetch(`/api/documents?workspaceId=${activeWorkspaceId}`);
                 if (checkRes.ok) {
@@ -109,45 +99,26 @@ export default function DocumentsPage() {
             }, 3000);
 
         } catch (error) {
-            const message = error instanceof Error ? error.message : "Failed to upload document";
-            console.error("Upload error:", error);
-            toast.error(message);
-            // Remove temp doc on error
+            toast.error("Failed to upload document");
             setDocuments((prev) => prev.filter(d => d.id !== tempId));
         } finally {
             setUploading(false);
         }
     }, [activeWorkspaceId]);
 
-    const handleDelete = async () => {
-        if (!deleteConfirm || !activeWorkspaceId) return;
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+        // Optimistic Delete
+        setDocuments(prev => prev.filter(d => d.id !== id));
 
         try {
-            setDeleting(true);
-
-            // Optimistic update - remove from UI immediately
-            const documentToDelete = deleteConfirm;
-            setDocuments(prev => prev.filter(d => d.id !== documentToDelete.id));
-            setDeleteConfirm(null);
-
-            const res = await fetch(`/api/documents/${documentToDelete.id}`, {
-                method: "DELETE",
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to delete document");
-            }
-
-            toast.success(`"${documentToDelete.name}" deleted successfully`);
+            await fetch(`/api/documents/${id}`, { method: "DELETE" });
+            toast.success("Document deleted");
+            queryClient.invalidateQueries({ queryKey: ["dashboardSummary"] });
         } catch (error) {
-            console.error("Delete error:", error);
             toast.error("Failed to delete document");
-            // Revert optimistic update on error
-            if (activeWorkspaceId) {
-                fetchDocuments(activeWorkspaceId);
-            }
-        } finally {
-            setDeleting(false);
+            if (activeWorkspaceId) fetchDocuments(activeWorkspaceId);
         }
     };
 
@@ -162,215 +133,121 @@ export default function DocumentsPage() {
     });
 
     return (
-        <div className="space-y-10">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-pastel-yellow" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Knowledge Base</span>
-                    </div>
-                    <h1 className="text-4xl font-serif font-bold">Documents</h1>
-                    <p className="text-muted-foreground mt-2">
-                        Feed your AI agent with documentation to make it smarter.
-                    </p>
-                </div>
-            </header>
+        <div className="max-w-5xl mx-auto space-y-8 block">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Knowledge Base</h1>
+                <p className="text-zinc-500 mt-1">Upload documents to train your AI agent.</p>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left: Upload Zone */}
-                <div className="lg:col-span-1">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="sticky top-8"
-                    >
+                {/* Upload Area */}
+                <Card className="lg:col-span-1 h-fit">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Upload File</CardTitle>
+                        <CardDescription>
+                            Supported formats: PDF, DOCX, TXT
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                         <div
                             {...getRootProps()}
-                            className={`hi-card p-10 text-center cursor-pointer transition-all duration-300 relative overflow-hidden group
-                                ${isDragActive ? "bg-pastel-blue" : "bg-white hover:border-pastel-green hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"}
-                                ${uploading ? "pointer-events-none opacity-60" : ""}
+                            className={`
+                                border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
+                                ${isDragActive ? "border-indigo-500 bg-indigo-50" : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"}
+                                ${uploading ? "opacity-50 pointer-events-none" : ""}
                             `}
                         >
                             <input {...getInputProps()} />
-
-                            {/* Decorative background circle */}
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-secondary rounded-full blur-3xl group-hover:bg-pastel-green/20 transition-colors" />
-
-                            <div className="relative z-10">
-                                <div className="w-16 h-16 bg-secondary hi-border rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                                    {uploading ? (
-                                        <Loader2 className="w-8 h-8 animate-spin" />
-                                    ) : (
-                                        <Upload className={`w-8 h-8 ${isDragActive ? "text-black" : "text-muted-foreground"}`} />
-                                    )}
-                                </div>
-                                <h3 className="text-xl font-bold mb-2">
-                                    {isDragActive ? "Drop it!" : "Add Knowledge"}
-                                </h3>
-                                <p className="text-sm text-muted-foreground mb-6">
-                                    {uploading ? "Uploading and processing..." : "Drag & drop your files here or click to browse"}
-                                </p>
-                                <div className="flex flex-wrap justify-center gap-2">
-                                    <span className="px-2 py-1 bg-secondary text-[10px] font-black uppercase tracking-tighter hi-border rounded-lg">PDF</span>
-                                    <span className="px-2 py-1 bg-secondary text-[10px] font-black uppercase tracking-tighter hi-border rounded-lg">DOCX</span>
-                                    <span className="px-2 py-1 bg-secondary text-[10px] font-black uppercase tracking-tighter hi-border rounded-lg">TXT</span>
-                                </div>
+                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                {uploading ? <Loader2 className="animate-spin" /> : <Upload />}
                             </div>
-                        </div>
-
-                        <div className="mt-6 p-4 hi-card bg-pastel-yellow/10 border-dashed">
-                            <p className="text-xs font-medium leading-relaxed">
-                                <Sparkles className="w-3 h-3 inline mr-1 text-pastel-yellow" />
-                                <b>Tip:</b> High-quality documentation leads to a better AI experience. Try to avoid tables and use clear headings.
+                            <p className="text-sm font-medium text-zinc-900 mb-1">
+                                {isDragActive ? "Drop file here" : "Click to upload"}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                                Max file size: 10MB
                             </p>
                         </div>
-                    </motion.div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                {/* Right: Documents List */}
-                <div className="lg:col-span-2 space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-2xl font-bold">Your Library</h2>
-                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{documents.length} Files</span>
-                    </div>
+                {/* Documents List */}
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex justify-between items-center text-lg">
+                            <span>Library</span>
+                            <Badge variant="secondary" className="bg-zinc-100 text-zinc-600">
+                                {documents.length} Files
+                            </Badge>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {/* Empty State */}
+                            {!isLoading && documents.length === 0 && (
+                                <div className="text-center py-12">
+                                    <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <FileText className="text-zinc-400" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-zinc-900">No documents yet</h3>
+                                    <p className="text-xs text-zinc-500 mt-1">Upload your first file to get started.</p>
+                                </div>
+                            )}
 
-                    <div className="space-y-4">
-                        <AnimatePresence mode="popLayout">
-                            {documents.map((doc, idx) => (
-                                <motion.div
-                                    key={doc.id}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                >
-                                    <Card className="hi-card p-6 group hover:translate-x-1 transition-transform">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4 flex-1 min-w-0">
-                                                <div className="w-12 h-12 rounded-xl bg-secondary hi-border flex items-center justify-center flex-shrink-0 group-hover:bg-pastel-blue transition-colors">
-                                                    <FileText className="w-6 h-6" />
-                                                </div>
-                                                <div className="truncate">
-                                                    <p className="font-bold text-lg truncate">{doc.name}</p>
-                                                    <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                                                        Added {new Date(doc.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
+                            <AnimatePresence>
+                                {documents.map((doc) => (
+                                    <motion.div
+                                        key={doc.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="flex items-center justify-between p-3 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className="w-10 h-10 rounded-lg bg-white border border-zinc-200 flex items-center justify-center flex-shrink-0 text-zinc-500">
+                                                <File size={18} />
                                             </div>
-
-                                            <div className="flex items-center gap-4">
-                                                {doc.status === "processing" && (
-                                                    <div className="flex items-center gap-2 px-3 py-1 bg-secondary hi-border rounded-full text-xs font-bold">
-                                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                                        <span>Syncing</span>
-                                                    </div>
-                                                )}
-                                                {doc.status === "completed" && (
-                                                    <div className="flex items-center gap-2 px-3 py-1 bg-pastel-green/40 hi-border rounded-full text-xs font-bold text-emerald-800">
-                                                        <CheckCircle className="w-3 h-3" />
-                                                        <span>Ready</span>
-                                                    </div>
-                                                )}
-                                                {doc.status === "failed" && (
-                                                    <div className="flex items-center gap-2 px-3 py-1 bg-destructive/20 hi-border rounded-full text-xs font-bold text-destructive">
-                                                        <XCircle className="w-3 h-3" />
-                                                        <span>Sync Failed</span>
-                                                    </div>
-                                                )}
-
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => setDeleteConfirm({ id: doc.id, name: doc.name })}
-                                                    className="rounded-full hover:bg-destructive/10 hover:text-destructive hover:scale-110 transition-all"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </Button>
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-sm text-zinc-900 truncate">{doc.name}</p>
+                                                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                                                    <span>{(doc.size / 1024).toFixed(0)} KB</span>
+                                                    <span>•</span>
+                                                    <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
 
-                        {documents.length === 0 && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="hi-card p-20 bg-secondary/20 border-dashed text-center"
-                            >
-                                <div className="w-16 h-16 bg-white hi-border rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-                                    <FileText className="w-8 h-8" />
-                                </div>
-                                <p className="text-muted-foreground font-bold">Your knowledge base is empty.</p>
-                                <p className="text-sm text-muted-foreground mt-1">Upload a file to get started.</p>
-                            </motion.div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                                        <div className="flex items-center gap-3">
+                                            {doc.status === "processing" && (
+                                                <Badge variant="secondary" className="bg-blue-50 text-blue-600 animate-pulse">
+                                                    Processing
+                                                </Badge>
+                                            )}
+                                            {doc.status === "completed" && (
+                                                <Badge variant="secondary" className="bg-green-50 text-green-600">
+                                                    Active
+                                                </Badge>
+                                            )}
+                                            {doc.status === "failed" && (
+                                                <Badge variant="secondary" className="bg-red-50 text-red-600">
+                                                    Failed
+                                                </Badge>
+                                            )}
 
-            {/* Delete Confirmation Dialog */}
-            <AnimatePresence>
-                {deleteConfirm && (
-                    <>
-                        {/* Backdrop */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => !deleting && setDeleteConfirm(null)}
-                            className="fixed inset-0 bg-black/50 z-50"
-                        />
-
-                        {/* Dialog */}
-                        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                className="bg-white rounded-3xl border-2 border-black max-w-md w-full p-8 pointer-events-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                            >
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-destructive/10 hi-border flex items-center justify-center flex-shrink-0">
-                                        <AlertTriangle className="w-6 h-6 text-destructive" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-serif font-bold mb-2">Delete Document?</h2>
-                                        <p className="text-muted-foreground">
-                                            Are you sure you want to delete <span className="font-bold">"{deleteConfirm.name}"</span>? This action cannot be undone.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setDeleteConfirm(null)}
-                                        disabled={deleting}
-                                        className="flex-1 px-6 py-3 border-2 border-black rounded-2xl font-bold hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleDelete}
-                                        disabled={deleting}
-                                        className="flex-1 px-6 py-3 bg-destructive text-white border-2 border-black rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {deleting ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                Deleting...
-                                            </>
-                                        ) : (
-                                            'Delete'
-                                        )}
-                                    </button>
-                                </div>
-                            </motion.div>
+                                            <button
+                                                onClick={() => handleDelete(doc.id, doc.name)}
+                                                className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                         </div>
-                    </>
-                )}
-            </AnimatePresence>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

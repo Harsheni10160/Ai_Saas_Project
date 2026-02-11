@@ -61,41 +61,43 @@ export default function CreateWorkspaceModal() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-[425px] rounded-3xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-serif font-bold">Create Workspace</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">
-                        Workspaces help you keep your projects, documents, and teams separate.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={onCreate}>
-                    <div className="grid gap-4 py-4">
+            <DialogContent className="sm:max-w-[425px] rounded-xl border border-zinc-200 shadow-xl overflow-hidden p-0">
+                <div className="bg-zinc-50/50 p-6 border-b border-zinc-100">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold tracking-tight text-zinc-900">New Workspace</DialogTitle>
+                        <DialogDescription className="text-zinc-500 text-sm">
+                            Create a dedicated space for your team and knowledge base.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
+                <form onSubmit={onCreate} className="p-6 space-y-6">
+                    <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="font-bold">Workspace Name</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold text-zinc-700">Workspace Name</Label>
                             <Input
                                 id="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Acme Corp, Marketing Team"
-                                className="rounded-xl border-2 border-black focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-pastel-green"
+                                placeholder="e.g. Acme Corp Support"
+                                className="h-11 rounded-lg border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/10 transition-all text-sm"
                                 disabled={loading}
                                 required
                             />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => setOpen(false)}
-                            className="rounded-xl border-2 border-black"
+                            className="rounded-lg text-zinc-500 hover:text-zinc-900"
                             disabled={loading}
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            className="rounded-xl border-2 border-black bg-pastel-green text-black hover:bg-pastel-green/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-bold"
+                            className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 px-6 font-semibold"
                             disabled={loading}
                         >
                             {loading ? "Creating..." : "Create Workspace"}

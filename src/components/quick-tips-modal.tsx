@@ -19,7 +19,7 @@ const tips = [
             "When users ask questions, we find the most relevant chunks",
             "The AI uses these chunks as context to generate accurate answers"
         ],
-        color: "pastel-green"
+        iconBg: "bg-blue-50 text-blue-600"
     },
     {
         icon: Zap,
@@ -31,7 +31,7 @@ const tips = [
             "Product documentation and guides",
             "Avoid scanned images without OCR"
         ],
-        color: "pastel-blue"
+        iconBg: "bg-green-50 text-green-600"
     },
     {
         icon: Code,
@@ -43,7 +43,7 @@ const tips = [
             "Customize colors and position in Settings",
             "Test it on localhost first"
         ],
-        color: "pastel-yellow"
+        iconBg: "bg-amber-50 text-amber-600"
     },
     {
         icon: Sparkles,
@@ -55,7 +55,7 @@ const tips = [
             "Review chat history to identify gaps",
             "Update documents regularly"
         ],
-        color: "pastel-purple"
+        iconBg: "bg-indigo-50 text-indigo-600"
     }
 ];
 
@@ -70,7 +70,7 @@ export default function QuickTipsModal({ isOpen, onClose }: QuickTipsModalProps)
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/50 z-50"
+                        className="fixed inset-0 bg-zinc-950/20 backdrop-blur-sm z-50"
                     />
 
                     {/* Modal */}
@@ -79,26 +79,29 @@ export default function QuickTipsModal({ isOpen, onClose }: QuickTipsModalProps)
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white rounded-3xl border-2 border-black max-w-4xl w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                            className="bg-white rounded-xl border border-zinc-200 max-w-4xl w-full max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl"
                         >
                             {/* Header */}
-                            <div className="p-6 border-b-2 border-black bg-pastel-green flex items-center justify-between">
+                            <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-2xl font-serif font-bold">✨ Quick Tips</h2>
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                        Everything you need to know to get started
+                                    <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
+                                        <Sparkles className="text-indigo-600" size={20} />
+                                        Quick Setup Guide
+                                    </h2>
+                                    <p className="text-sm text-zinc-500 mt-1">
+                                        Learn how to get the most out of your AI support agent.
                                     </p>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-2 hover:bg-black/10 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-900"
                                 >
-                                    <X size={24} />
+                                    <X size={20} />
                                 </button>
                             </div>
 
                             {/* Content */}
-                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {tips.map((tip, idx) => {
                                         const Icon = tip.icon;
@@ -108,19 +111,19 @@ export default function QuickTipsModal({ isOpen, onClose }: QuickTipsModalProps)
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: idx * 0.1 }}
-                                                className="hi-card p-6 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
+                                                className="p-6 rounded-xl border border-zinc-100 bg-white hover:border-zinc-200 transition-all group"
                                             >
-                                                <div className={`inline-block p-3 bg-${tip.color} hi-border rounded-xl mb-4`}>
-                                                    <Icon size={24} />
+                                                <div className={`inline-block p-3 rounded-xl mb-4 ${tip.iconBg}`}>
+                                                    <Icon size={20} />
                                                 </div>
-                                                <h3 className="text-xl font-bold mb-2">{tip.title}</h3>
-                                                <p className="text-sm text-muted-foreground mb-4">
+                                                <h3 className="text-base font-bold text-zinc-900 mb-2">{tip.title}</h3>
+                                                <p className="text-sm text-zinc-500 mb-4 leading-relaxed">
                                                     {tip.description}
                                                 </p>
                                                 <ul className="space-y-2">
                                                     {tip.details.map((detail, detailIdx) => (
-                                                        <li key={detailIdx} className="flex items-start gap-2 text-sm">
-                                                            <span className="text-pastel-green font-bold mt-0.5">•</span>
+                                                        <li key={detailIdx} className="flex items-start gap-2 text-sm text-zinc-600">
+                                                            <div className="w-1 h-1 rounded-full bg-zinc-300 mt-2 flex-shrink-0" />
                                                             <span>{detail}</span>
                                                         </li>
                                                     ))}
@@ -131,18 +134,21 @@ export default function QuickTipsModal({ isOpen, onClose }: QuickTipsModalProps)
                                 </div>
 
                                 {/* Footer CTA */}
-                                <div className="mt-8 p-6 bg-black text-white rounded-2xl text-center">
-                                    <h3 className="text-xl font-bold mb-2">Need More Help?</h3>
-                                    <p className="text-white/70 mb-4">
-                                        Check out our full documentation or contact support
-                                    </p>
-                                    <div className="flex gap-3 justify-center">
-                                        <button className="px-6 py-2 bg-white text-black rounded-full font-bold hover:scale-105 transition-all">
-                                            View Docs
-                                        </button>
-                                        <button className="px-6 py-2 border-2 border-white rounded-full font-bold hover:bg-white/10 transition-all">
-                                            Contact Support
-                                        </button>
+                                <div className="mt-8 p-8 bg-zinc-900 text-white rounded-2xl text-center relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                                    <div className="relative z-10">
+                                        <h3 className="text-xl font-bold mb-2">Need More Help?</h3>
+                                        <p className="text-zinc-400 mb-6 max-w-md mx-auto">
+                                            Our documentation covers everything from advanced API usage to custom CSS configurations.
+                                        </p>
+                                        <div className="flex gap-4 justify-center">
+                                            <button className="px-6 py-2 bg-white text-zinc-900 rounded-lg font-semibold hover:bg-white/90 transition-all text-sm">
+                                                View Documentation
+                                            </button>
+                                            <button className="px-6 py-2 border border-white/20 rounded-lg font-semibold hover:bg-white/5 transition-all text-sm">
+                                                Join Community
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
